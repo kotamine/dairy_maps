@@ -1,0 +1,32 @@
+---
+title: "Dairy Production Maps"
+author: "Kota Minegishi"
+date: "Created: May 1, 2017"
+output: 
+  html_notebook:
+    toc: false
+    toc_depth: 2
+    number_sections: false
+---
+
+
+## Change in Employment
+Bureau of Labor Statistics
+
+* <a href="html/employment_dairy_farming.html" target="_blank" >Dairy farming</a>
+
+* <a href="html/employment_dairy_food_mf.html" target="_blank" >Dairy food manufacturing</a>
+
+
+## Change in Milk Cow Inventory 
+Data Source: US Agricultural Census.
+
+* <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >2007 to 2012</a>
+
+* <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >2002 to 2007</a>
+
+* <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >1997 to 2002</a>
+
+* <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >1992 to 1997</a>
+
+
