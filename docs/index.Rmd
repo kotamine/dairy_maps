@@ -3,7 +3,7 @@ title: "Dairy Production Maps"
 author: "Kota Minegishi"
 date: "Created: May 1, 2017"
 output: 
-  html_notebook:
+  html_document:
     toc: false
     toc_depth: 2
     number_sections: false
