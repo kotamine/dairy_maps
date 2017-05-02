@@ -1,25 +1,35 @@
 ---
-title: "Dairy Production Maps"
+title: "Dairy Maps"
+subtitle: "Visualizing dairy geography"
 author: "Kota Minegishi"
 date: "Created: May 1, 2017"
 output: 
   html_document:
     toc: false
     toc_depth: 2
-    number_sections: false
+    number_sections: true
 ---
 
 
-## Change in Employment
-Bureau of Labor Statistics
-
-* <a href="html/employment_dairy_farming.html" target="_blank" >Dairy farming</a>
-
-* <a href="html/employment_dairy_food_mf.html" target="_blank" >Dairy food manufacturing</a>
-
-
-## Change in Milk Cow Inventory 
+# Milk Cow Inventory 
 Data Source: US Agricultural Census.
+
+Milk cow inventory can be calculated from  [Agricultural Census summary files]("http://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/35206). We add up milk cows from the dairy farms with 20 or more cows. 
+
+## Levels
+
+* <a href="html/cow_inventory_2012.html" target="_blank" >2012</a>
+
+* <a href="html/cow_inventory_2007.html" target="_blank" >2007</a>
+
+* <a href="html/cow_inventory_2002.html" target="_blank" >2002</a>
+
+* <a href="html/cow_inventory_1997.html" target="_blank" >1997</a>
+
+* <a href="html/cow_inventory_1992.html" target="_blank" >1992</a>
+
+
+## Changes
 
 * <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >2007 to 2012</a>
 
@@ -29,4 +39,22 @@ Data Source: US Agricultural Census.
 
 * <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >1992 to 1997</a>
 
+
+# Dairy Employment
+Data Source:Bureau of Labor Statistics
+
+The Quarterly Census of Employment and Wages (QCEW) provides state and county level employment records (establishments, employees, and wages) by industry via North American Industry Classification System (NAICS). The QCEW is a byproduct of the state-level unemployment insurance (UI) administrative accounts. Since many small to medium dairy farms are not required to provide UI to their employees, the total employement in dairy farming is smaller than the actual. Nevertheless, it captures employment dynamics at a large scale. Currently, the QCEW is [publically available](https://data.bls.gov/cew/doc/access/csv_data_slices.htm)  from 2012 to a part of 2016.
+
+## Levels
+
+* <a href="html/employment_dairy_farming.html" target="_blank" >Dairy farming (NAICS 112120)</a>
+
+* <a href="html/employment_dairy_food_mf.html" target="_blank" >Dairy food manufacturing (NAICS 3115)</a>
+
+
+## Changes
+
+* <a href="html/employment_change_dairy_farming.html" target="_blank" >Dairy farming (NAICS 112120)</a>
+
+* <a href="html/employment_change_dairy_food_mf.html" target="_blank" >Dairy food manufacturing (NAICS 3115)</a>
 

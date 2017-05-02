@@ -132,6 +132,10 @@ df_dairy_farming$change_jobs_gr[df_dairy_farming$emplvl_diff3==0] <- NA
 
 df_dairy_farming$change_jobs_gr %>% table()
 
+df_dairy_farming %>% filter(year==2012) %>% 
+  group_by(year, ST_FIPS) %>%
+  summarise(sum(avg_emplvl)) %>% print(n=60)
+
 
 
 loc_colors <- brewer.pal(8, "RdYlBu")[-1]
@@ -456,6 +460,15 @@ my_leaflet <- function(data_geo, var, pal, popup, title) {
 }
 
 
+add_map_var <- function(geo_data, var, varname, breaks, large_limits=FALSE) {
+  geo_data[[varname]] <- cut(geo_data@data[[var]], 
+                             breaks = breaks,
+                             ordered_result = TRUE,
+                             labels = my_ordered_levels(breaks,
+                                                        large_limits=large_limits))
+  geo_data[[varname]][geo_data@data[[var]]==0] <- NA
+  geo_data
+}
 
 # dairy farming ------------------------------------
 
@@ -467,86 +480,94 @@ geo_dairy_farming <- geo_join(shapefile,
                                         by =  c("ST_FIPS" = "state_fips")),
                               "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
 
-breaks_geo_dairy_farming <- c(- 500, -300, -200, -100, 0, 100, 200, 300, 500)
 
-add_map_var <- function(geo_data, var, varname, breaks, large_limits=FALSE) {
-  geo_data[[varname]] <- cut(geo_data@data[[var]], 
-                                        breaks = breaks,
-                                        ordered_result = TRUE,
-                                        labels = my_ordered_levels(breaks,
-                                                                   large_limits=large_limits))
-  geo_data[[varname]][geo_data@data[[var]]==0] <- NA
-  geo_data
-}
-
-geo_dairy_farming <- add_map_var(geo_dairy_farming, 
-                                 var = "emplvl_diff3", 
-                                 varname = "change_jobs_gr", 
-                                 breaks = breaks_geo_dairy_farming)
-
-gen_popup_1 <- function(geo_data) {
-  paste0(
-    geo_data$NAME, ", ", geo_data$state_abbrev, 
-    "<br> 2012: ", formatcomma(geo_data@data[["emplvl_lag3"]]), 
-    "<br> 2015: ",  formatcomma(geo_data@data[["avg_emplvl"]]), 
-    "<br> change: ",  formatcomma(geo_data@data[["emplvl_diff3"]]),
-    " (", ifelse(geo_data@data[["emplvl_lag3"]]==0, 
-                 "NA)", paste0(round(geo_data@data[["emplvl_diff3"]]/
-                                       geo_data@data[["emplvl_lag3"]], 2)*100, "%)"))
+gen_jobs_leaf  <- function(geo_data, var, var1, var2, 
+                           label1, label2, file_name, 
+                           breaks,
+                           palette = "RdYlBu",
+                           title = NULL) {
+  
+  mapvar <- paste0(var, "_gr")  
+  geo_data <- add_map_var(geo_data, 
+                          var = var, 
+                          varname = mapvar, 
+                          breaks = breaks)
+  
+  popup <- 
+    paste0(
+      geo_data$NAME, ", ", geo_data$state_abbrev, 
+      "<br> 2012: ", formatcomma(geo_data@data[["emplvl_lag3"]]), 
+      "<br> 2015: ",  formatcomma(geo_data@data[["avg_emplvl"]]), 
+      "<br> change: ",  formatcomma(geo_data@data[["emplvl_diff3"]]),
+      " (", ifelse(geo_data@data[["emplvl_lag3"]]==0, 
+                   "NA)", paste0(round(geo_data@data[["emplvl_diff3"]]/
+                                         geo_data@data[["emplvl_lag3"]], 2)*100, "%)")),
+      "<br> avg wage: $", formatcomma(geo_data@data[["avg_wage"]]) 
+    )
+  
+  
+  pal <- colorFactor(
+    palette = palette,
+    domain = geo_data[[mapvar]],
+    na.color = 	"#FFFFFF"
   )
+  
+  leaf_map <- my_leaflet(geo_data,
+                                   mapvar, 
+                                   pal = pal,
+                                   popup = popup, 
+                                   title =title)
+  
+  saveWidget(leaf_map,
+             file= paste0(file_name, ".html"), selfcontained=TRUE)
+  
 }
 
-popup_dairy_farmin <- gen_popup_1(geo_dairy_farming)
+breaks_geo_change_dairy_farming <- c(- 500, -300, -200, -100, 0, 100, 200, 300, 500)
+breaks_geo_dairy_farming <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
 
-pal_dairy_farming <- colorFactor(
-  palette = "RdYlBu",
-  domain = geo_dairy_farming[["change_jobs_gr"]],
-  na.color = 	"#FFFFFF"
-)
+gen_jobs_leaf(geo_dairy_farming, 
+              var = "emplvl_diff3",
+              file_name = "employment_change_dairy_farming", 
+              breaks= breaks_geo_change_dairy_farming,
+              title = "Change in Employment<br>in Milk Production, <br> 2012 to 2015 (jobs)") 
 
-leaf_dairy_farming <- my_leaflet(geo_dairy_farming, "change_jobs_gr", 
-           pal = pal_dairy_farming,
-           popup = popup_dairy_farming, 
-           title = "Change in Employment<br>in Milk Production, <br> 2012 to 2015 (jobs)")
+gen_jobs_leaf(geo_dairy_farming, 
+              var = "avg_emplvl",
+              file_name = "employment_dairy_farming", 
+              breaks= breaks_geo_dairy_farming,
+              palette = "YlGnBu",
+              title = "Employment<br>in Milk Production, <br> 2015 (jobs)") 
 
-saveWidget(leaf_dairy_farming,
-           file= "employment_dairy_farming.html", selfcontained=TRUE)
 
 # dairy food manufacturing ----------------------------------------
 
 
 df_dairy_food_mf$FIPS_num <- df_dairy_food_mf$FIPS %>% as.numeric()
 
-geo_df_dairy_food_mf <- geo_join(shapefile, 
+geo_dairy_food_mf <- geo_join(shapefile, 
                               full_join(df_dairy_food_mf %>% filter(year == 2015),
                                         df_state_fips,
                                         by =  c("ST_FIPS" = "state_fips")),
                               "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
 
-breaks_geo_dairy_food_mf <- c(-2000, - 500, -300, -200, -100, 0, 100, 200, 300, 500, 2000)
+breaks_geo_change_dairy_food_mf <- c(-2000, - 500, -300, -200, -100, 0, 100, 200, 300, 500, 2000)
+breaks_geo_dairy_food_mf <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
 
-geo_df_dairy_food_mf <- add_map_var(geo_df_dairy_food_mf, 
-                                 var = "emplvl_diff3", 
-                                 varname = "change_jobs_gr", 
-                                 breaks = breaks_geo_dairy_farming,
-                                 large_limits = TRUE)
 
-popup_dairy_food_mf <- gen_popup_1(geo_df_dairy_food_mf)
+gen_jobs_leaf(geo_dairy_food_mf, 
+              var = "emplvl_diff3",
+              file_name = "employment_change_dairy_food_mf", 
+              breaks= breaks_geo_change_dairy_food_mf,
+              title = "Change in Employment<br>in Dairy Food Manufacturing, <br> 2012 to 2015 (jobs)") 
 
-pal_dairy_food_mf <- colorFactor(
-  palette = "RdYlBu",
-  domain = geo_df_dairy_food_mf[["change_jobs_gr"]],
-  na.color = 	"#FFFFFF"
-)
+gen_jobs_leaf(geo_dairy_food_mf, 
+              var = "avg_emplvl",
+              file_name = "employment_dairy_food_mf", 
+              breaks= breaks_geo_dairy_food_mf,
+              palette = "YlGnBu",
+              title = "Employment<br>in Dairy Food Manufacturing, <br> 2015 (jobs)") 
 
-leaf_dairy_food_mf <- my_leaflet(geo_df_dairy_food_mf, "change_jobs_gr", 
-                                 pal = pal_dairy_food_mf,
-                                 popup = popup_dairy_food_mf,  
-                                 title = paste("Change in Employment<br>in Dairy Food Manufacturing,",
-                                               "<br> 2012 to 2015 (jobs)"))
-
-saveWidget(leaf_dairy_food_mf,
-           file= "employment_dairy_food_mf.html", selfcontained=TRUE)
 
 
 # ag census dairy cow inventory -----------------------------------
@@ -586,57 +607,83 @@ geo_ag_census_more <- geo_join(shapefile,
                           "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
 
 
-breaks_geo_change_cows <- c(-Inf,-5, -3, -2, -1, 0, 1, 2, 3, 5, Inf)*1000
-
-
 gen_ag_census_leaf  <- function(geo_ag_census, var, var1, var2, 
-                                label1, label2, file_name) {
+                                label1, label2, file_name, 
+                                breaks,
+                                palette = "RdYlBu",
+                                title = NULL, 
+                                group =TRUE) {
   
-  geo_ag_census <- add_map_var(geo_ag_census, 
-                              var = var, 
-                              varname = "change_cows_gr", 
-                              breaks = breaks_geo_change_cows,
-                              large_limits = TRUE)
-  
-  popup_change_cows2 <- 
+  if (group) {
+    mapvar <- paste0(var,"_gr")
+    geo_ag_census <- add_map_var(geo_ag_census, 
+                                var = var, 
+                                varname = mapvar, 
+                                breaks = breaks,
+                                large_limits = TRUE)
+  } else {
+    mapvar <- var
+  }
+    
+  popup <- 
     paste0(
       geo_ag_census$NAME, ", ", geo_ag_census$state_abbrev, 
       "<br>", label1,  ": ", formatcomma(geo_ag_census@data[[var1]]), 
       "<br>", label2,  ": ", formatcomma(geo_ag_census@data[[var2]]), 
       "<br> change: ",  formatcomma(geo_ag_census@data[[var]]),
       " (", ifelse(geo_ag_census@data[[var1]]==0, 
-                   "NA)", paste0(round(geo_ag_census@data[[var]]/
+                   "NA)", 
+                   paste0(round((geo_ag_census@data[[var2]] - geo_ag_census@data[[var1]])/
                                          geo_ag_census@data[[var1]], 2)*100, "%)"))
     )
   
-  pal_change_cows2 <- colorFactor(
-    palette = "RdYlBu",
-    domain = geo_ag_census[["change_cows_gr"]],
-    na.color = 	"#FFFFFF"
-  )
+  if (group) {
+    pal <- colorFactor(
+      palette = palette,
+      domain = geo_ag_census[[mapvar]],
+      na.color = 	"#FFFFFF"
+    )
+  } else {
+    pal <- colorBin(
+      palette = palette,
+      domain = geo_ag_census[[mapvar]],
+      na.color = 	"#FFFFFF"
+    )
+  }
   
-  leaf_map <- my_leaflet(geo_ag_census, "change_cows_gr", 
-                         pal = pal_change_cows2,
-                         popup = popup_change_cows2,  
-                         title = paste("Change in Milk Cow Inveontory, <br>",
-                                       label1, "to", label2, "(heads)"))
+  
+  if (is.null(title)) {
+    title <- paste("Change in Milk Cow Inveontory, <br>",
+                 label1, "to", label2, "(heads)")
+  }
+  
+  leaf_map <- my_leaflet(geo_ag_census, 
+                         mapvar, 
+                         pal = pal,
+                         popup = popup,  
+                         title = title)
   
   saveWidget(leaf_map,
              file= paste0(file_name,".html"), selfcontained=TRUE)
   
 }
 
+#  ---- changes ----
+breaks_geo_change_cows <- c(-Inf,-5, -3, -2, -1, 0, 1, 2, 3, 5, Inf)*1000
+
 
 gen_ag_census_leaf(geo_ag_census_more, 
                    var="change_cows_07_12", 
                    var1="cows_20_up_07", var2="cows_20_up_12", 
                    label1=2007, label2=2012, 
+                   breaks = breaks_geo_change_cows,
                    file_name="change_cow_inventory_2007_2012")
 
 gen_ag_census_leaf(geo_ag_census_more, 
                    var="change_cows_02_07", 
                    var1="cows_20_up_02", var2="cows_20_up_07", 
                    label1=2002, label2=2007, 
+                   breaks = breaks_geo_change_cows,
                    file_name="change_cow_inventory_2002_2007") 
 
 
@@ -644,14 +691,72 @@ gen_ag_census_leaf(geo_ag_census_more,
                    var="change_cows_97_02", 
                    var1="cows_20_up_97", var2="cows_20_up_02", 
                    label1=1997, label2=2002, 
+                   breaks = breaks_geo_change_cows,
                    file_name="change_cow_inventory_1997_2002") 
 
 gen_ag_census_leaf(geo_ag_census_more, 
                    var="change_cows_92_97", 
                    var1="cows_20_up_92", var2="cows_20_up_97", 
                    label1=1992, label2=1997, 
+                   breaks = breaks_geo_change_cows,
                    file_name="change_cow_inventory_1992_1997")
 
+#  ---- levels ----
 
+breaks_geo_cows <- c(0, 0.5, 1, 2, 3, 5, 10, 20, Inf)*10
 
+geo_ag_census_more@data <- 
+  geo_ag_census_more@data %>% 
+  mutate(
+    cows_12_1000 = cows_20_up_12/1000,
+    cows_07_1000 = cows_20_up_07/1000,
+    cows_02_1000 = cows_20_up_02/1000,
+    cows_97_1000 = cows_20_up_97/1000,
+    cows_92_1000 = cows_20_up_92/1000
+  )
+
+gen_ag_census_leaf(geo_ag_census_more, 
+                   var="cows_12_1000", 
+                   var1="cows_20_up_07", var2="cows_20_up_12", 
+                   label1=2007, label2=2012, 
+                   breaks = breaks_geo_cows,
+                   file_name="change_cow_inventory_2012",
+                   palette = "YlGnBu",
+                   title = "Cow Inventory, 2012 <br> (1,000 heads)")
+
+gen_ag_census_leaf(geo_ag_census_more, 
+                   var="cows_07_1000", 
+                   var1="cows_20_up_02", var2="cows_20_up_07", 
+                   label1=2002, label2=2007, 
+                   breaks = breaks_geo_cows,
+                   file_name="change_cow_inventory_2007",
+                   palette = "YlGnBu",
+                   title = "Cow Inventory, 2007 <br> (1,000 heads)")
+
+gen_ag_census_leaf(geo_ag_census_more, 
+                   var="cows_02_1000", 
+                   var1="cows_20_up_97", var2="cows_20_up_02", 
+                   label1=1997, label2=2002, 
+                   breaks = breaks_geo_cows,
+                   file_name="change_cow_inventory_2002",
+                   palette = "YlGnBu",
+                   title = "Cow Inventory, 2002 <br> (1,000 heads)")
+
+gen_ag_census_leaf(geo_ag_census_more, 
+                   var="cows_97_1000", 
+                   var1="cows_20_up_92", var2="cows_20_up_97", 
+                   label1=1992, label2=1997, 
+                   breaks = breaks_geo_cows,
+                   file_name="change_cow_inventory_1997",
+                   palette = "YlGnBu",
+                   title = "Cow Inventory, 1997 <br> (1,000 heads)")
+
+gen_ag_census_leaf(geo_ag_census_more, 
+                   var="cows_92_1000", 
+                   var1="cows_20_up_92", var2="cows_20_up_97", 
+                   label1=1992, label2=1997, 
+                   breaks = breaks_geo_cows,
+                   file_name="change_cow_inventory_1992",
+                   palette = "YlGnBu",
+                   title = "Cow Inventory, 1992 <br> (1,000 heads)")
 
