@@ -1,14 +1,15 @@
 ---
 title: "Dairy Maps"
 subtitle: "Visualizing dairy geography"
-author: "Kota Minegishi"
+author: "Kota Minegishi, Dairy Extension Economist at the University of Minnesota "
 date: "Created: May 1, 2017"
 output: 
   html_document:
-    toc: false
-    toc_depth: 2
+    toc: true
+    toc_depth: 1
     number_sections: true
 ---
+
 
 
 # Milk Cow Inventory 
@@ -57,4 +58,12 @@ The Quarterly Census of Employment and Wages (QCEW) provides state and county le
 * <a href="html/employment_change_dairy_farming.html" target="_blank" >Dairy farming (NAICS 112120)</a>
 
 * <a href="html/employment_change_dairy_food_mf.html" target="_blank" >Dairy food manufacturing (NAICS 3115)</a>
+
+
+# Grain Production
+
+
+# Hispanic Population
+
+
 

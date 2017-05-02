@@ -9,6 +9,7 @@ library(scales)
 
 setwd("/Users/kota/Dropbox/R_projects/dairy_maps")
 
+
 # ---- county shape map ----------
 # library(tigris)
 # library(stringi)
@@ -22,6 +23,7 @@ setwd("/Users/kota/Dropbox/R_projects/dairy_maps")
 
 # --------------------
 # geographic shape data 
+# ---------------------
 
 cnty <- map_data("county") # using ggplot2
 states <- map_data("state") # using ggplot2
@@ -32,332 +34,30 @@ df_shape_counties <- df_shape_counties %>%
   inner_join(shape_counties@data, by="id") 
 df_shape_counties$region <- df_shape_counties$FIPS
 
-load("data/ag_census_07.RData")
-load("data/ag_census_12.RData")
-load("data/labor_stats.RData")
 
 # ---------------------
 # functions for mapping 
+# ---------------------
 
 range_to <- function(x) {
   gsub("\\(", "", gsub(",", " to ", gsub("]", "", x)))
 }
 
-my_ordered_levels <- function(breaks, large_limits=FALSE, comma=TRUE) {
+my_ordered_levels <- function(breaks, large_limits=FALSE, 
+                              large_limit_left=FALSE, large_limit_right=FALSE, comma=TRUE) {
   if (comma) breaks <- formatcomma(breaks) 
   rlt <- paste(lag(breaks), "to", breaks)[-1] 
-  if (large_limits) {
-    rlt[1] <- paste("<", breaks[2])
-    rlt[length(rlt)] <- paste(">", breaks[(length(breaks)-1)])
-  }
+  if (large_limits | large_limit_left) rlt[1] <- paste("<", breaks[2])
+  if (large_limits | large_limit_right) rlt[length(rlt)] <- paste(">", breaks[(length(breaks)-1)])
   rlt
 }
-
-
-map_dairy_5st <- function(df, var, title = "", legend_fill = "", 
-                          st_region_keep, 
-                          st_fips_keep) {
-
-  plot1 <- df[!is.na(df[[var]]),] %>%
-    # filter_(!is.na(as.name(var))) %>%
-    ggplot() +  
-    geom_polygon(data =  subset(cnty, region %in% st_region_keep),
-                 mapping = aes(x = long, y = lat, group = group),
-                 colour ="gray", fill = NA) +
-    geom_map(aes_(map_id = as.name("FIPS"), fill = as.name(var)),
-             map = subset(df_shape_counties, STATEFP %in% st_fips_keep)) + 
-    geom_polygon(data = subset(states, region %in% st_region_keep),
-                 mapping = aes(x = long, y = lat, group = group),
-                 colour ="gray40", fill = NA) +
-    coord_quickmap() + #xlim(-105, - 87) + ylim( 40, 50) +
-    # scale_fill_brewer(palette = "RdYlBu") +
-    # scale_fill_gradientn(colours =  brewer.pal(9,"RdYlBu")[-(1:4)]) +
-    # scale_fill_gradient(low = "#132B43", high = "#56B1F7") +
-    labs(title = title,
-         y = NULL, x = NULL, fill = legend_fill) +
-    theme_void() +
-    theme(legend.position = "bottom", legend.margin = margin(t = -1, unit = 'cm'))
-}
-
-  
-map_add_footnote  <- function(plot1, footnote, save.as) {
-
-  g <- arrangeGrob(plot1, bottom = textGrob(footnote, x=0, hjust = -0.1, vjust = 0.4,
-                                            gp = gpar(fontface="italic", fontsize=11)))
-  grid.draw(g)
-  if (length(save.as)>0) { 
-    ggsave(paste0(save.as,".png"), g ) #dpi = 600)
-    dev.off()
-  }
-}
-
-
-# -------------------------------
-# dairy_jobs
-# -------------------------------
-
-# MN, WI, ND, SD, IA
-st_fips_keep1 <- c(27, 55, 38, 46, 19)
-st_region_keep1 <- c("minnesota", "wisconsin", "north dakota", "south dakota", "iowa")
-
-
-
-df_dairy_farming <- df_dairy_farming %>% 
-  mutate( 
-    FIPS = area_fips,
-    ST_FIPS = state %>% as.numeric()
-  ) 
-
-df_dairy_farming <- df_dairy_farming %>% 
-  arrange(FIPS, year) %>%
-  group_by(FIPS) %>%
-  mutate(
-    emplvl_lag3 = dplyr::lag(avg_emplvl, 3),
-    emplvl_diff3 = avg_emplvl - emplvl_lag3
-  ) %>% ungroup()
-
-
-my_breaks_change_jobs_1 <- c(-500, -300, -200, -100, 0, 100, 200, 300, 500)
-
-
-df_dairy_farming <- df_dairy_farming %>% 
-  mutate( 
-    change_jobs_gr = cut(emplvl_diff3, breaks = my_breaks_change_jobs_1)
-    %>% range_to() %>%
-      ordered(levels =  c("-300 to -200", "-200 to -100", "-100 to 0", "",  # added dummy ""
-                          "0 to 100", "100 to 200", "200 to 300", "300 to 500", NA))
-  )
-
-df_dairy_farming$change_jobs_gr[df_dairy_farming$emplvl_diff3==0] <- NA
-
-df_dairy_farming$change_jobs_gr %>% table()
-
-df_dairy_farming %>% filter(year==2012) %>% 
-  group_by(year, ST_FIPS) %>%
-  summarise(sum(avg_emplvl)) %>% print(n=60)
-
-
-
-loc_colors <- brewer.pal(8, "RdYlBu")[-1]
-loc_colors <- c(loc_colors[1:3], "white", loc_colors[4:8])
-
-( map_dairy_5st(df_dairy_farming  %>%  
-                  filter(ST_FIPS %in% st_fips_keep, year ==2015), 
-                var ="change_jobs_gr", 
-                title= paste("Change in Employment in Dairy Cattle and Milk Production, 2012 to 2015"), 
-                legend_fill="Change (jobs):", 
-                st_region_keep=st_region_keep1, 
-                st_fips_keep= st_fips_keep1) + 
-    scale_fill_manual(values = loc_colors, drop=FALSE) +
-    guides(fill=guide_legend(ncol=4, byrow=TRUE)) 
-) %>%
-  map_add_footnote(footnote="Data Source: Bureau of Labor Statistics, NAICS 112120.",
-                   save.as ="img/dairy_farming_jobs_change")
-
-
-for (yr in c(2012, 2015)) {
-  ( map_dairy_5st(df_dairy_farming  %>%  
-                    filter(ST_FIPS %in% st_fips_keep, year ==yr, avg_emplvl>0), 
-                  var = "avg_emplvl", 
-                  title= paste("Employment Dairy Cattle and Milk Production,", yr), 
-                  legend_fill="Jobs:",
-                  st_region_keep=st_region_keep1, 
-                  st_fips_keep= st_fips_keep1) + 
-      scale_fill_gradientn(colours =  brewer.pal(9,"YlGnBu")[-(1:4)]) 
-  ) %>%
-    map_add_footnote(footnote="Data Source: Bureau of Labor Statistics, NAICS 112120.",
-                     save.as =paste0("img/dairy_farming_jobs_", yr))
-}
-
-
-# -------------------------------
-# dairy_manufacturing_jobs
-# -------------------------------
-
-# MN, WI, IA
-st_fips_keep2 <- c(27, 55, 19)
-st_region_keep2 <- c("minnesota", "wisconsin", "iowa")
-
-
-df_dairy_food_mf <- df_dairy_food_mf %>% 
-  mutate( 
-    FIPS = area_fips,
-    ST_FIPS = state %>% as.numeric()
-  ) 
-
-df_dairy_food_mf <- df_dairy_food_mf %>% 
-  arrange(FIPS, year) %>%
-  group_by(FIPS) %>%
-  mutate(
-    emplvl_lag3 = dplyr::lag(avg_emplvl, 3),
-    emplvl_diff3 = avg_emplvl - emplvl_lag3
-  ) %>% ungroup()
-
-
-my_breaks_change_jobs_2 <- c(-2000, -300, -200, -100, 0, 100, 200, 300, 2000)
-
-df_dairy_food_mf <- df_dairy_food_mf %>% 
-  mutate( 
-    change_jobs_gr = cut(emplvl_diff3, breaks = my_breaks_change_jobs_2,
-                         ordered_result =TRUE, 
-                         labels = my_ordered_levels(my_breaks_change_jobs_2,
-                                                    large_limits=TRUE))
-  )
-
-df_dairy_food_mf$change_jobs_gr[df_dairy_food_mf$emplvl_diff3==0] <- NA
-
-df_dairy_food_mf$emplvl_diff3 %>% summary()
-df_dairy_food_mf$change_jobs_gr %>% table()
-
-df_dairy_food_mf %>%  
-  filter(ST_FIPS %in% st_fips_keep) %>% print(n=30)
-
-
-( map_dairy_5st(df_dairy_food_mf  %>%  
-                  filter(ST_FIPS %in% st_fips_keep2, year ==2015), 
-                var ="change_jobs_gr", 
-                title= paste("Change in Employment in Dairy Product Manufacturing, 2012 to 2015"), 
-                legend_fill="Change (jobs):",
-                st_region_keep=st_region_keep2, 
-                st_fips_keep= st_fips_keep2) + 
-    scale_fill_manual(values =  brewer.pal(8, "RdYlBu"), drop=FALSE) +
-    guides(fill=guide_legend(ncol=4, byrow=TRUE)) 
-) %>%
-  map_add_footnote(footnote="Data Source: Bureau of Labor Statistics, NAICS 3115.",
-                   save.as ="img/dairy_food_mf_jobs_change")
-
-
-for (yr in c(2012, 2015)) {
-  ( map_dairy_5st(df_dairy_food_mf  %>%  
-                    filter(ST_FIPS %in% st_fips_keep2, year ==yr, avg_emplvl>0), 
-                  var = "avg_emplvl", 
-                  title= paste("Employment in Dairy Product Manufacturing,", yr), 
-                  legend_fill="Jobs:",
-                  st_region_keep=st_region_keep2, 
-                  st_fips_keep= st_fips_keep2) + 
-      scale_fill_gradientn(colours =  brewer.pal(9,"YlGnBu")[-(1:4)]) 
-  ) %>%
-    map_add_footnote(footnote="Data Source: Bureau of Labor Statistics, NAICS 3115.",
-                     save.as =paste0("img/dairy_food_mf_jobs_", yr))
-}
-
-
-
-
-# ------------------------------------
-# ag census dairy cow inventory
-# ------------------------------------
-
-df_ag_census <- ag_census_07 %>% 
-                filter(LEVEL==1) %>%
-                select(FIPS, cows_20_up) %>% 
-  inner_join( ag_census_12 %>% 
-                filter(LEVEL==1) %>%
-                select(FIPS, NAME, STATEFIP, cows_20_up), by = "FIPS") %>% 
-  mutate(
-    cows_20_up_07 = cows_20_up.x,
-    cows_20_up_12 = cows_20_up.y,
-    change_cows = cows_20_up_12 - cows_20_up_07,
-    change_cows_pct = ifelse(cows_20_up_07==0 & cows_20_up_12==0, 0, 
-                             change_cows/cows_20_up_07)
-  )
-
-head(df_ag_census)
-
-df_ag_census %>% filter(STATEFIP %in% st_fips_keep1) %>% 
-  group_by(STATEFIP) %>%
-  summarise(
-    cows_2007 = sum(cows_20_up_07),
-    cows_2012 = sum(cows_20_up_12),
-    cows_change = cows_2012 - cows_2007,
-    cows_change_pct = cows_change/cows_2007
-  )
-
-
-my_breaks_change_cows <- c(-10, -3, -2, -1, 0, 1, 2, 3, 10)
-my_breaks_change_cows_pct <- c(-1, -.5, -.25, -.10, 0, .10, .25, .5, 1)
-my_breaks_cows <- c(0, 10, 20, 30, 40, 50, 60, 100)
-
-
-df_ag_census <- df_ag_census %>%
-  mutate(
-    STATEFP = STATEFIP,
-    change_cows_gr2 = cut(change_cows, breaks = my_breaks_change_cows*1000,
-                         ordered_result =TRUE, 
-                         labels = my_ordered_levels(my_breaks_change_cows*1000, 
-                                                    large_limits=TRUE)), 
-    change_cows_gr = cut(change_cows/1000, breaks = my_breaks_change_cows,
-                         ordered_result =TRUE, 
-                         labels = my_ordered_levels(my_breaks_change_cows, 
-                                                    large_limits=TRUE)), 
-    change_cows_pct_gr = cut(change_cows_pct*100, breaks = my_breaks_change_cows_pct*100,
-                             ordered_result =TRUE, 
-                             labels = my_ordered_levels(my_breaks_change_cows_pct)),
-    cows_20_up_07_gr =  cut(cows_20_up_07/1000, breaks = my_breaks_cows,
-                            ordered_result =TRUE, 
-                            labels = my_ordered_levels(my_breaks_cows, 
-                                                       large_limits=TRUE)),
-    cows_20_up_12_gr = cut(cows_20_up_12/1000, breaks = my_breaks_cows, 
-                           ordered_result =TRUE, 
-                           labels = my_ordered_levels(my_breaks_cows, 
-                                                      large_limits=TRUE))
-  )
-
-df_ag_census$change_cows_gr[df_ag_census$change_cows == 0] <- NA
-df_ag_census$change_cows_gr2[df_ag_census$change_cows == 0] <- NA
-
-head(df_ag_census)
-
-
-
-(  map_dairy_5st(df_ag_census  %>%  
-                  filter(STATEFIP %in% st_fips_keep), 
-                var ="change_cows_gr2", 
-                title= "Change in Milk Cow Inventory by County, 2007 to 2012", 
-                legend_fill="Change (heads):",
-                st_fips_keep = st_fips_keep1,
-                st_region_keep = st_region_keep1) +
-    scale_fill_manual(values =  brewer.pal(8, "RdYlBu"), drop=FALSE) +
-    guides(fill=guide_legend(ncol=4, byrow=TRUE))
-) %>%
-  map_add_footnote(footnote="Data Source: US Agricultural Census.",
-                   save.as ="img/change_cow_inventory_2007_2012")
-
-
-for (yr in c(2007, 2012)) {
-  var <- ifelse(yr==2007, "cows_20_up_07_gr", "cows_20_up_12_gr")
-  ( map_dairy_5st(df_ag_census  %>%  
-                    filter(STATEFIP %in% st_fips_keep), 
-                  var = var, 
-                  title= paste("Milk Cow Inventory by County,", yr), 
-                  legend_fill="1,000 heads:",
-                  st_region_keep=st_region_keep1, 
-                  st_fips_keep= st_fips_keep1) + 
-      # scale_fill_gradientn(colours =  brewer.pal(9,"YlGnBu")[-(1:4)]) 
-      scale_fill_brewer(palette = "YlGnBu")
-  ) %>%
-    map_add_footnote(footnote="Data Source: US Agricultural Census.",
-                     save.as =paste0("img/cow_inventory_", yr))
-}
-
-
-# --------------------------------------------------
-# leaflet
-# --------------------------------------------------
-
-library(tigris)
-# library(acs)
-library(stringr)
-library(stringi)
-library(leaflet)
-library(htmlwidgets)
 
 firstcap <- function(x) {
   lapply(1:length(x), function(i) {
     xi <- x[i]
     if(grepl(" ", xi)) {
-           tmp <- gregexpr(" ", xi)[[1]][1] + 1
-           substr(xi,  tmp,  tmp) <- toupper(substr(xi, tmp, tmp))
+      tmp <- gregexpr(" ", xi)[[1]][1] + 1
+      substr(xi,  tmp,  tmp) <- toupper(substr(xi, tmp, tmp))
     }
     substr(xi, 1, 1) <- toupper(substr(xi, 1, 1))
     xi
@@ -385,7 +85,7 @@ stateFromLower <-function(x, faclevs = 'selected') {
   #Function to convert state FIPS codes to full state names or vice-versa 
   #x is a vector of state abbreviations, or full state names.
   #direction (name to code, or code to name) is determined automatically based on the supplied data
-
+  
   st.codes<-data.frame(
     state=as.factor(c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
                       "HI", "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME",
@@ -405,9 +105,9 @@ stateFromLower <-function(x, faclevs = 'selected') {
   )
   
   if (nchar(x[1]) == 2) { st.x <- data.frame(state = x)
-    refac.x <- st.codes$full[match(tolower(st.x$state), tolower(st.codes$state))] 
+  refac.x <- st.codes$full[match(tolower(st.x$state), tolower(st.codes$state))] 
   } else { st.x <- data.frame(full = x)
-    refac.x <- st.codes$state[match(tolower(st.x$full), tolower(st.codes$full))] 
+  refac.x <- st.codes$state[match(tolower(st.x$full), tolower(st.codes$full))] 
   }
   
   if(faclevs == 'all') {return(refac.x)}
@@ -427,9 +127,22 @@ get_state_fips <- function(x) {
 #     state_fips = get_state_fips(state_abbr)
 #          )
 
+# --------------------------------------------------
+# leaflet
+# --------------------------------------------------
+
+library(tigris)
+# library(acs)
+library(stringr)
+library(stringi)
+library(leaflet)
+library(htmlwidgets)
+
+
+
 
 my_leaflet <- function(data_geo, var, pal, popup, title) {
-    
+  
   map_FIPS <-  leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     addPolygons(
@@ -445,46 +158,88 @@ my_leaflet <- function(data_geo, var, pal, popup, title) {
               values = data_geo[[var]],
               position = "bottomright",
               title = title,
-              na.label = "", 
+              na.label = "",
               labFormat = labelFormat(prefix = "")) %>%
     setView(lng = -93.85, lat = 37.45, zoom = 4) %>%
     fitBounds(-125, 25, -67, 50)
   map_FIPS
 }
 
+# ---------------------
+# functions for mapping BLS data 
+# ---------------------
 
-add_map_var <- function(geo_data, var, varname, breaks, large_limits=FALSE) {
+load("data/labor_stats.RData")
+
+prep_bls_data <- function(df, yr = 2015) {
+  
+  df <- df %>% 
+    mutate( 
+      FIPS = area_fips,
+      FIPS_num = FIPS %>% as.numeric(), 
+      ST_FIPS = state %>% as.numeric()
+    ) 
+
+  df <- df %>% 
+    arrange(FIPS, year) %>%
+    group_by(FIPS) %>%
+    mutate(
+      emplvl_lag3 = dplyr::lag(avg_emplvl, 3),
+      emplvl_diff3 = avg_emplvl - emplvl_lag3
+    ) %>% ungroup()
+  
+  print("summary of emplvl_diff3 (employment difference)")
+  print(summary(df$emplvl_diff3))
+  
+  print("summary of avg_emplvl (employment 2015)")
+  print(summary(df$avg_emplvl))
+  
+  print("summary of emplvl_lag3 (employment 2012)")
+  print(summary(df$emplvl_lag3))
+  
+  df_sml <- df %>% dplyr::filter(year == yr) %>%
+    full_join(df_state_fips, # from global env 
+                      by =  c("ST_FIPS" = "state_fips"))
+            
+  geo_df <- geo_join(shapefile, df_sml,
+                     "FIPS", "FIPS_num") # from global env
+  
+  geo_df
+}
+
+
+add_map_var <- function(geo_data, var, varname, breaks, 
+                        large_limits=FALSE, large_limit_left=FALSE, large_limit_right=FALSE) {
   geo_data[[varname]] <- cut(geo_data@data[[var]], 
                              breaks = breaks,
                              ordered_result = TRUE,
                              labels = my_ordered_levels(breaks,
-                                                        large_limits=large_limits))
+                                                        large_limits=large_limits,
+                                                        large_limit_left=large_limit_left,
+                                                        large_limit_right=large_limit_right))
   geo_data[[varname]][geo_data@data[[var]]==0] <- NA
   geo_data
 }
 
-# dairy farming ------------------------------------
-
-df_dairy_farming$FIPS_num <- df_dairy_farming$FIPS %>% as.numeric()
-
-geo_dairy_farming <- geo_join(shapefile, 
-                              full_join(df_dairy_farming %>% filter(year == 2015),
-                                        df_state_fips,
-                                        by =  c("ST_FIPS" = "state_fips")),
-                              "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
-
 
 gen_jobs_leaf  <- function(geo_data, var, var1, var2, 
                            label1, label2, file_name, 
-                           breaks,
+                           breaks, large_limits = FALSE, 
+                           large_limit_left=FALSE, large_limit_right=FALSE,
                            palette = "RdYlBu",
                            title = NULL) {
+  
+  if ( breaks[1] == Inf) large_limit_left <- TRUE
+  if ( breaks[length(breaks)] == Inf) large_limit_right <- TRUE
   
   mapvar <- paste0(var, "_gr")  
   geo_data <- add_map_var(geo_data, 
                           var = var, 
                           varname = mapvar, 
-                          breaks = breaks)
+                          breaks = breaks,
+                          large_limits = large_limits,
+                          large_limit_left = large_limit_left,
+                          large_limit_right = large_limit_right)
   
   popup <- 
     paste0(
@@ -506,15 +261,21 @@ gen_jobs_leaf  <- function(geo_data, var, var1, var2,
   )
   
   leaf_map <- my_leaflet(geo_data,
-                                   mapvar, 
-                                   pal = pal,
-                                   popup = popup, 
-                                   title =title)
+                         mapvar, 
+                         pal = pal,
+                         popup = popup, 
+                         title =title)
   
   saveWidget(leaf_map,
              file= paste0(file_name, ".html"), selfcontained=TRUE)
   
 }
+
+
+
+# dairy farming ------------------------------------
+
+geo_dairy_farming <- prep_bls_data(df_dairy_farming)
 
 breaks_geo_change_dairy_farming <- c(- 500, -300, -200, -100, 0, 100, 200, 300, 500)
 breaks_geo_dairy_farming <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
@@ -535,14 +296,7 @@ gen_jobs_leaf(geo_dairy_farming,
 
 # dairy food manufacturing ----------------------------------------
 
-
-df_dairy_food_mf$FIPS_num <- df_dairy_food_mf$FIPS %>% as.numeric()
-
-geo_dairy_food_mf <- geo_join(shapefile, 
-                              full_join(df_dairy_food_mf %>% filter(year == 2015),
-                                        df_state_fips,
-                                        by =  c("ST_FIPS" = "state_fips")),
-                              "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
+geo_dairy_food_mf <- prep_bls_data(df_dairy_food_mf)
 
 breaks_geo_change_dairy_food_mf <- c(-2000, - 500, -300, -200, -100, 0, 100, 200, 300, 500, 2000)
 breaks_geo_dairy_food_mf <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
@@ -561,13 +315,42 @@ gen_jobs_leaf(geo_dairy_food_mf,
               palette = "YlGnBu",
               title = "Employment<br>in Dairy Food Manufacturing, <br> 2015 (jobs)") 
 
+# animal processing ----------------------------------------
+
+geo_animal_processing <- prep_bls_data(df_animal_processing)
+
+breaks_geo_change_animal_processing <- c(-Inf, - 500, -300, -200, -100, 0, 100, 200, 300, 500, Inf)
+breaks_geo_animal_processing <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
 
 
-# ag census dairy cow inventory -----------------------------------
+gen_jobs_leaf(geo_animal_processing, 
+              var = "emplvl_diff3",
+              file_name = "employment_change_animal_processing", 
+              breaks= breaks_geo_change_animal_processing,
+              title = "Change in Employment<br>in Animal Processing, <br> 2012 to 2015 (jobs)") 
+
+gen_jobs_leaf(geo_animal_processing, 
+              var = "avg_emplvl",
+              file_name = "employment_animal_processing", 
+              breaks= breaks_geo_animal_processing,
+              palette = "YlGnBu",
+              title = "Employment<br>in Animal Processing, <br> 2015 (jobs)") 
+
+
+# -----------------------------------------------------------------
+# Ag Census data
+# -----------------------------------------------------------------
+
+
+
+# dairy cow inventory -----------------------------------
 
 load("data/ag_census_92.RData")
 load("data/ag_census_97.RData")
 load("data/ag_census_02.RData")
+load("data/ag_census_07.RData")
+load("data/ag_census_12.RData")
+
 
 df_ag_census_more <- df_ag_census %>% 
   inner_join(ag_census_02 %>% 
@@ -594,10 +377,10 @@ head(df_ag_census_more)
 df_ag_census_more$FIPS_num <- df_ag_census_more$FIPS %>% as.numeric()
 
 geo_ag_census_more <- geo_join(shapefile, 
-                          full_join(df_ag_census_more, 
-                                    df_state_fips,
-                                    by =  c("STATEFP" = "state_fips")),
-                          "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
+                               full_join(df_ag_census_more, 
+                                         df_state_fips,
+                                         by =  c("STATEFP" = "state_fips")),
+                               "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
 
 
 gen_ag_census_leaf  <- function(geo_ag_census, var, var1, var2, 
@@ -610,14 +393,14 @@ gen_ag_census_leaf  <- function(geo_ag_census, var, var1, var2,
   if (group) {
     mapvar <- paste0(var,"_gr")
     geo_ag_census <- add_map_var(geo_ag_census, 
-                                var = var, 
-                                varname = mapvar, 
-                                breaks = breaks,
-                                large_limits = TRUE)
+                                 var = var, 
+                                 varname = mapvar, 
+                                 breaks = breaks,
+                                 large_limits = TRUE)
   } else {
     mapvar <- var
   }
-    
+  
   popup <- 
     paste0(
       geo_ag_census$NAME, ", ", geo_ag_census$state_abbrev, 
@@ -627,7 +410,7 @@ gen_ag_census_leaf  <- function(geo_ag_census, var, var1, var2,
       " (", ifelse(geo_ag_census@data[[var1]]==0, 
                    "NA)", 
                    paste0(round((geo_ag_census@data[[var2]] - geo_ag_census@data[[var1]])/
-                                         geo_ag_census@data[[var1]], 2)*100, "%)"))
+                                  geo_ag_census@data[[var1]], 2)*100, "%)"))
     )
   
   if (group) {
@@ -647,7 +430,7 @@ gen_ag_census_leaf  <- function(geo_ag_census, var, var1, var2,
   
   if (is.null(title)) {
     title <- paste("Change in Milk Cow Inveontory, <br>",
-                 label1, "to", label2, "(heads)")
+                   label1, "to", label2, "(heads)")
   }
   
   leaf_map <- my_leaflet(geo_ag_census, 
@@ -752,4 +535,16 @@ gen_ag_census_leaf(geo_ag_census_more,
                    file_name="change_cow_inventory_1992",
                    palette = "YlGnBu",
                    title = "Cow Inventory, 1992 <br> (1,000 heads)")
+
+# --- corn ----------
+
+
+
+# --- soybean ----------
+
+
+
+
+# --- Hispanic ----------
+
 
