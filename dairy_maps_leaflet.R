@@ -139,9 +139,8 @@ library(leaflet)
 library(htmlwidgets)
 
 
-
-
-my_leaflet <- function(data_geo, var, pal, popup, title) {
+my_leaflet <- function(data_geo, var, pal, popup, title,
+                       prefix="", suffix="") {
   
   map_FIPS <-  leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
@@ -159,7 +158,7 @@ my_leaflet <- function(data_geo, var, pal, popup, title) {
               position = "bottomright",
               title = title,
               na.label = "",
-              labFormat = labelFormat(prefix = "")) %>%
+              labFormat = labelFormat(prefix = prefix, suffix=suffix)) %>%
     setView(lng = -93.85, lat = 37.45, zoom = 4) %>%
     fitBounds(-125, 25, -67, 50)
   map_FIPS
@@ -222,14 +221,13 @@ add_map_var <- function(geo_data, var, varname, breaks,
 }
 
 
-gen_jobs_leaf  <- function(geo_data, var, var1, var2, 
-                           label1, label2, file_name, 
+gen_leaf_map  <- function(geo_data, var, file_name, 
                            breaks, large_limits = FALSE, 
                            large_limit_left=FALSE, large_limit_right=FALSE,
                            palette = "RdYlBu",
-                           title = NULL) {
+                           title = NULL, popup = NULL, ...) {
   
-  if ( breaks[1] == Inf) large_limit_left <- TRUE
+  if ( breaks[1] == -Inf) large_limit_left <- TRUE
   if ( breaks[length(breaks)] == Inf) large_limit_right <- TRUE
   
   mapvar <- paste0(var, "_gr")  
@@ -241,6 +239,7 @@ gen_jobs_leaf  <- function(geo_data, var, var1, var2,
                           large_limit_left = large_limit_left,
                           large_limit_right = large_limit_right)
   
+  if (is.null(popup)) {
   popup <- 
     paste0(
       geo_data$NAME, ", ", geo_data$state_abbrev, 
@@ -252,7 +251,7 @@ gen_jobs_leaf  <- function(geo_data, var, var1, var2,
                                          geo_data@data[["emplvl_lag3"]], 2)*100, "%)")),
       "<br> avg wage: $", formatcomma(geo_data@data[["avg_wage"]]) 
     )
-  
+  }
   
   pal <- colorFactor(
     palette = palette,
@@ -264,7 +263,7 @@ gen_jobs_leaf  <- function(geo_data, var, var1, var2,
                          mapvar, 
                          pal = pal,
                          popup = popup, 
-                         title =title)
+                         title =title, ...)
   
   saveWidget(leaf_map,
              file= paste0(file_name, ".html"), selfcontained=TRUE)
@@ -280,13 +279,13 @@ geo_dairy_farming <- prep_bls_data(df_dairy_farming)
 breaks_geo_change_dairy_farming <- c(- 500, -300, -200, -100, 0, 100, 200, 300, 500)
 breaks_geo_dairy_farming <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
 
-gen_jobs_leaf(geo_dairy_farming, 
+gen_leaf_map(geo_dairy_farming, 
               var = "emplvl_diff3",
               file_name = "employment_change_dairy_farming", 
               breaks= breaks_geo_change_dairy_farming,
               title = "Change in Employment<br>in Milk Production, <br> 2012 to 2015 (jobs)") 
 
-gen_jobs_leaf(geo_dairy_farming, 
+gen_leaf_map(geo_dairy_farming, 
               var = "avg_emplvl",
               file_name = "employment_dairy_farming", 
               breaks= breaks_geo_dairy_farming,
@@ -302,13 +301,13 @@ breaks_geo_change_dairy_food_mf <- c(-2000, - 500, -300, -200, -100, 0, 100, 200
 breaks_geo_dairy_food_mf <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
 
 
-gen_jobs_leaf(geo_dairy_food_mf, 
+gen_leaf_map(geo_dairy_food_mf, 
               var = "emplvl_diff3",
               file_name = "employment_change_dairy_food_mf", 
               breaks= breaks_geo_change_dairy_food_mf,
               title = "Change in Employment<br>in Dairy Food Manufacturing, <br> 2012 to 2015 (jobs)") 
 
-gen_jobs_leaf(geo_dairy_food_mf, 
+gen_leaf_map(geo_dairy_food_mf, 
               var = "avg_emplvl",
               file_name = "employment_dairy_food_mf", 
               breaks= breaks_geo_dairy_food_mf,
@@ -323,13 +322,13 @@ breaks_geo_change_animal_processing <- c(-Inf, - 500, -300, -200, -100, 0, 100, 
 breaks_geo_animal_processing <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
 
 
-gen_jobs_leaf(geo_animal_processing, 
+gen_leaf_map(geo_animal_processing, 
               var = "emplvl_diff3",
               file_name = "employment_change_animal_processing", 
               breaks= breaks_geo_change_animal_processing,
               title = "Change in Employment<br>in Animal Processing, <br> 2012 to 2015 (jobs)") 
 
-gen_jobs_leaf(geo_animal_processing, 
+gen_leaf_map(geo_animal_processing, 
               var = "avg_emplvl",
               file_name = "employment_animal_processing", 
               breaks= breaks_geo_animal_processing,
@@ -341,10 +340,6 @@ gen_jobs_leaf(geo_animal_processing,
 # Ag Census data
 # -----------------------------------------------------------------
 
-
-
-# dairy cow inventory -----------------------------------
-
 load("data/ag_census_92.RData")
 load("data/ag_census_97.RData")
 load("data/ag_census_02.RData")
@@ -352,137 +347,129 @@ load("data/ag_census_07.RData")
 load("data/ag_census_12.RData")
 
 
-df_ag_census_more <- df_ag_census %>% 
+df_ag_census <-  ag_census_12 %>% 
+  filter(LEVEL==1) %>% select(FIPS, NAME, STATEFIP, cows_20_up, harvest_corn, harvest_soybean) %>% 
+  inner_join(ag_census_07 %>% 
+               filter(LEVEL==1) %>%  
+               select(FIPS, cows_20_up, harvest_corn, harvest_soybean), by = "FIPS") %>% 
   inner_join(ag_census_02 %>% 
                filter(LEVEL==1) %>%  
-               select(FIPS, cows_20_up), by = "FIPS") %>% 
+               select(FIPS, cows_20_up, harvest_corn, harvest_soybean), by = "FIPS") %>% 
   inner_join( ag_census_97 %>% 
                 filter(LEVEL==1) %>%
-                select(FIPS, cows_20_up), by = "FIPS") %>% 
+                select(FIPS, cows_20_up, harvest_corn, harvest_soybean), by = "FIPS") %>% 
   inner_join( ag_census_92 %>% 
                 filter(LEVEL==1) %>%
-                select(FIPS, cows_20_up), by = "FIPS")  %>% 
+                select(FIPS, cows_20_up, harvest_corn, harvest_soybean), by = "FIPS") %>% 
   mutate(
-    cows_20_up_02 = cows_20_up,
-    cows_20_up_97 = cows_20_up.x.x,
-    cows_20_up_92 = cows_20_up.y.y,
+    cows_20_up_12 = cows_20_up.x,
+    cows_20_up_07 = cows_20_up.y,
+    cows_20_up_02 = cows_20_up.x.x,
+    cows_20_up_97 = cows_20_up.y.y,
+    cows_20_up_92 = cows_20_up,
     change_cows_07_12 = cows_20_up_12 - cows_20_up_07,
     change_cows_02_07 = cows_20_up_07 - cows_20_up_02,
     change_cows_97_02 = cows_20_up_02 - cows_20_up_97,
-    change_cows_92_97 = cows_20_up_97 - cows_20_up_92
+    change_cows_92_97 = cows_20_up_97 - cows_20_up_92,
+    harvest_corn_12 = harvest_corn.x/1000,
+    harvest_corn_07 = harvest_corn.y/1000,
+    harvest_corn_02 = harvest_corn.x.x/1000,
+    harvest_corn_97 = harvest_corn.y.y/1000,
+    harvest_corn_92 = harvest_corn/1000,
+    change_corn_07_12 = harvest_corn_12 - harvest_corn_07,
+    change_corn_02_07 = harvest_corn_07 - harvest_corn_02,
+    change_corn_97_02 = harvest_corn_02 - harvest_corn_97,
+    change_corn_92_97 = harvest_corn_97 - harvest_corn_92,
+    harvest_soybean_12 = harvest_soybean.x/1000,
+    harvest_soybean_07 = harvest_soybean.y/1000,
+    harvest_soybean_02 = harvest_soybean.x.x/1000,
+    harvest_soybean_97 = harvest_soybean.y.y/1000,
+    harvest_soybean_92 = harvest_soybean/1000,
+    change_soybean_07_12 = harvest_soybean_12 - harvest_soybean_07,
+    change_soybean_02_07 = harvest_soybean_07 - harvest_soybean_02,
+    change_soybean_97_02 = harvest_soybean_02 - harvest_soybean_97,
+    change_soybean_92_97 = harvest_soybean_97 - harvest_soybean_92
   )
 
-head(df_ag_census_more)
+head(df_ag_census)
 
-df_ag_census_more$FIPS_num <- df_ag_census_more$FIPS %>% as.numeric()
+df_ag_census$FIPS_num <- df_ag_census$FIPS %>% as.numeric()
 
-geo_ag_census_more <- geo_join(shapefile, 
-                               full_join(df_ag_census_more, 
+geo_ag_census <- geo_join(shapefile, 
+                               full_join(df_ag_census, 
                                          df_state_fips,
-                                         by =  c("STATEFP" = "state_fips")),
+                                         by =  c("STATEFIP" = "state_fips")),
                                "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
 
 
-gen_ag_census_leaf  <- function(geo_ag_census, var, var1, var2, 
-                                label1, label2, file_name, 
-                                breaks,
-                                palette = "RdYlBu",
-                                title = NULL, 
-                                group =TRUE) {
-  
-  if (group) {
-    mapvar <- paste0(var,"_gr")
-    geo_ag_census <- add_map_var(geo_ag_census, 
-                                 var = var, 
-                                 varname = mapvar, 
-                                 breaks = breaks,
-                                 large_limits = TRUE)
-  } else {
-    mapvar <- var
-  }
+gen_ag_census_leaf  <- function(geo_data, var, var1, var2, 
+                                label1, label2, ...) {
   
   popup <- 
     paste0(
-      geo_ag_census$NAME, ", ", geo_ag_census$state_abbrev, 
-      "<br>", label1,  ": ", formatcomma(geo_ag_census@data[[var1]]), 
-      "<br>", label2,  ": ", formatcomma(geo_ag_census@data[[var2]]), 
-      "<br> change: ",  formatcomma(geo_ag_census@data[[var]]),
-      " (", ifelse(geo_ag_census@data[[var1]]==0, 
+      geo_data$NAME, ", ", geo_data$state_abbrev, 
+      "<br>", label1,  ": ", formatcomma(geo_data@data[[var1]], digits=0), 
+      "<br>", label2,  ": ", formatcomma(geo_data@data[[var2]], digits=0), 
+      "<br> change: ",  formatcomma(geo_data@data[[var]], digits=0), 
+      " (", ifelse(geo_data@data[[var1]]==0, 
                    "NA)", 
-                   paste0(round((geo_ag_census@data[[var2]] - geo_ag_census@data[[var1]])/
-                                  geo_ag_census@data[[var1]], 2)*100, "%)"))
+                   paste0(round((geo_data@data[[var2]] - geo_data@data[[var1]])/
+                                  geo_data@data[[var1]], 2)*100, "%)"))
     )
   
-  if (group) {
-    pal <- colorFactor(
-      palette = palette,
-      domain = geo_ag_census[[mapvar]],
-      na.color = 	"#FFFFFF"
-    )
-  } else {
-    pal <- colorBin(
-      palette = palette,
-      domain = geo_ag_census[[mapvar]],
-      na.color = 	"#FFFFFF"
-    )
-  }
-  
-  
-  if (is.null(title)) {
-    title <- paste("Change in Milk Cow Inveontory, <br>",
-                   label1, "to", label2, "(heads)")
-  }
-  
-  leaf_map <- my_leaflet(geo_ag_census, 
-                         mapvar, 
-                         pal = pal,
-                         popup = popup,  
-                         title = title)
-  
-  saveWidget(leaf_map,
-             file= paste0(file_name,".html"), selfcontained=TRUE)
-  
+    gen_leaf_map(geo_data = geo_data, var=var, popup = popup, ...)
 }
+
+# dairy cow inventory -----------------------------------
 
 #  ---- changes ----
 breaks_geo_change_cows <- c(-Inf,-5, -3, -2, -1, 0, 1, 2, 3, 5, Inf)*1000
 
 
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="change_cows_07_12", 
-                   var1="cows_20_up_07", var2="cows_20_up_12", 
-                   label1=2007, label2=2012, 
-                   breaks = breaks_geo_change_cows,
-                   file_name="change_cow_inventory_2007_2012")
-
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="change_cows_02_07", 
-                   var1="cows_20_up_02", var2="cows_20_up_07", 
-                   label1=2002, label2=2007, 
-                   breaks = breaks_geo_change_cows,
-                   file_name="change_cow_inventory_2002_2007") 
+list_specs <- data.frame(
+  yr1 = c(2007, 2002, 1997, 1992),
+  yr2 = c(2012, 2007, 2002, 1997)
+) %>% 
+  mutate(
+    num1 = substr(yr1, 3,4), 
+    num2 = substr(yr2, 3,4),
+    var = paste0("change_cows_", num1, "_", num2),
+    var1 = paste0("cows_20_up_", num1),
+    var2 = paste0("cows_20_up_", num2)
+  )
 
 
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="change_cows_97_02", 
-                   var1="cows_20_up_97", var2="cows_20_up_02", 
-                   label1=1997, label2=2002, 
-                   breaks = breaks_geo_change_cows,
-                   file_name="change_cow_inventory_1997_2002") 
+list_specs %>%
+  with(
+    for (i in 1:length(list_specs[[1]])) {
+      
+      gen_ag_census_leaf(geo_ag_census, 
+                         var=var[[i]], 
+                         var1=var1[[i]], var2=var2[[i]], 
+                         label1=yr1[[i]], label2=yr2[[i]], 
+                         breaks = breaks_geo_change_cows,
+                         title = paste("Change in Milk Cow Inventory, <br>", yr1[[i]],
+                                       "to", yr2[[i]], "(heads)"), 
+                         file_name=paste0("change_cow_inventory_", yr1[[i]], "_", yr2[[i]]))
+    }
+  )
 
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="change_cows_92_97", 
-                   var1="cows_20_up_92", var2="cows_20_up_97", 
-                   label1=1992, label2=1997, 
-                   breaks = breaks_geo_change_cows,
-                   file_name="change_cow_inventory_1992_1997")
+# 
+# gen_ag_census_leaf(geo_ag_census, 
+#                    var="change_cows_07_12", 
+#                    var1="cows_20_up_07", var2="cows_20_up_12", 
+#                    label1=2007, label2=2012, 
+#                    breaks = breaks_geo_change_cows,
+#                    file_name="change_cow_inventory_2007_2012")
+# 
+
 
 #  ---- levels ----
 
 breaks_geo_cows <- c(0, 0.5, 1, 2, 3, 5, 10, 20, Inf)*10
 
-geo_ag_census_more@data <- 
-  geo_ag_census_more@data %>% 
+geo_ag_census@data <- 
+  geo_ag_census@data %>% 
   mutate(
     cows_12_1000 = cows_20_up_12/1000,
     cows_07_1000 = cows_20_up_07/1000,
@@ -491,60 +478,294 @@ geo_ag_census_more@data <-
     cows_92_1000 = cows_20_up_92/1000
   )
 
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="cows_12_1000", 
-                   var1="cows_20_up_07", var2="cows_20_up_12", 
-                   label1=2007, label2=2012, 
-                   breaks = breaks_geo_cows,
-                   file_name="change_cow_inventory_2012",
-                   palette = "YlGnBu",
-                   title = "Cow Inventory, 2012 <br> (1,000 heads)")
 
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="cows_07_1000", 
-                   var1="cows_20_up_02", var2="cows_20_up_07", 
-                   label1=2002, label2=2007, 
-                   breaks = breaks_geo_cows,
-                   file_name="change_cow_inventory_2007",
-                   palette = "YlGnBu",
-                   title = "Cow Inventory, 2007 <br> (1,000 heads)")
+list_specs <- data.frame(
+  yr1 = c(2007, 2002, 1997, 1992),
+  yr2 = c(2012, 2007, 2002, 1997)
+) %>% 
+  mutate(
+    num1 = substr(yr1, 3,4), 
+    num2 = substr(yr2, 3,4),
+    var  = paste0("cows_", num2, "_1000"),
+    var1 = paste0("cows_", num1, "_1000"),
+    var2 = paste0("cows_", num2, "_1000")
+  )
 
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="cows_02_1000", 
-                   var1="cows_20_up_97", var2="cows_20_up_02", 
-                   label1=1997, label2=2002, 
-                   breaks = breaks_geo_cows,
-                   file_name="change_cow_inventory_2002",
-                   palette = "YlGnBu",
-                   title = "Cow Inventory, 2002 <br> (1,000 heads)")
 
-gen_ag_census_leaf(geo_ag_census_more, 
-                   var="cows_97_1000", 
-                   var1="cows_20_up_92", var2="cows_20_up_97", 
-                   label1=1992, label2=1997, 
-                   breaks = breaks_geo_cows,
-                   file_name="change_cow_inventory_1997",
-                   palette = "YlGnBu",
-                   title = "Cow Inventory, 1997 <br> (1,000 heads)")
+list_specs %>%
+  with(
+    for (i in 1:length(list_specs[[1]])) {
+      
+      gen_ag_census_leaf(geo_ag_census, 
+                         var=var[[i]], 
+                         var1=var1[[i]], var2=var2[[i]], 
+                         label1=yr1[[i]], label2=yr2[[i]], 
+                         breaks =breaks_geo_cows,
+                         palette = "YlGnBu",
+                         title = paste("Cow Inventory,", yr2[[i]], "<br> (1,000 heads)"), 
+                         file_name=paste0("cow_inventory_",yr2[[i]]))
+      
+    }
+  )
 
-gen_ag_census_leaf(geo_ag_census_more, 
+# the last/oldest census year uses the same popup as one-census before 
+gen_ag_census_leaf(geo_ag_census, 
                    var="cows_92_1000", 
                    var1="cows_20_up_92", var2="cows_20_up_97", 
                    label1=1992, label2=1997, 
                    breaks = breaks_geo_cows,
-                   file_name="change_cow_inventory_1992",
+                   file_name="cow_inventory_1992",
                    palette = "YlGnBu",
                    title = "Cow Inventory, 1992 <br> (1,000 heads)")
 
+
 # --- corn ----------
 
+#  ---- changes ----
+breaks_geo_change_corn <- c(-Inf,-5, -3, -2, -1, 0, 1, 2, 3, 5, Inf)*1000
 
+list_specs <- data.frame(
+                  yr1 = c(2007, 2002, 1997, 1992),
+                  yr2 = c(2012, 2007, 2002, 1997)
+                ) %>% 
+  mutate(
+    num1 = substr(yr1, 3,4), 
+    num2 = substr(yr2, 3,4),
+    var = paste0("change_corn_", num1, "_", num2),
+    var1 = paste0("harvest_corn_", num1),
+    var2 = paste0("harvest_corn_", num2)
+  )
+  
+
+list_specs %>%
+  with(
+    for (i in 1:length(list_specs[[1]])) {
+      
+      gen_ag_census_leaf(geo_ag_census, 
+                         var=var[[i]], 
+                         var1=var1[[i]], var2=var2[[i]], 
+                         label1=yr1[[i]], label2=yr2[[i]], 
+                         breaks = breaks_geo_change_corn,
+                         title = paste("Change in Corn Harvest,", yr1[[i]], "to", yr2[[i]],
+                                       "<br> (1,000 bushels)"), 
+                         file_name=paste0("change_harvest_corn_", yr1[[i]], "_", yr2[[i]]))
+    }
+  )
+
+#  ---- levels ----
+
+breaks_geo_corn <- c(0, 1, 2, 3, 5, 10, 20, 40, 60, Inf)*1000
+
+list_specs <- data.frame(
+  yr1 = c(2007, 2002, 1997, 1992),
+  yr2 = c(2012, 2007, 2002, 1997)
+) %>% 
+  mutate(
+    num1 = substr(yr1, 3,4), 
+    num2 = substr(yr2, 3,4),
+    var  = paste0("harvest_corn_", num2),
+    var1 = paste0("harvest_corn_", num1),
+    var2 = paste0("harvest_corn_", num2)
+  )
+
+
+list_specs %>%
+  with(
+    for (i in 1:length(list_specs[[1]])) {
+      
+      gen_ag_census_leaf(geo_ag_census, 
+                         var=var[[i]], 
+                         var1=var1[[i]], var2=var2[[i]], 
+                         label1=yr1[[i]], label2=yr2[[i]], 
+                         breaks = breaks_geo_corn,
+                         palette = "YlGnBu",
+                         title = paste("Corn Harvest,", yr2[[i]], "<br> (1,000 bushels)"), 
+                         file_name=paste0("harvest_corn_",yr2[[i]]))
+      
+    }
+  )
+
+# the last/oldest census year uses the same popup as one-census before 
+gen_ag_census_leaf(geo_ag_census, 
+                   var="harvest_corn_92", 
+                   var1="harvest_corn_92", var2="harvest_corn_97", 
+                   label1=1992, label2=1997, 
+                   breaks = breaks_geo_corn,
+                   palette = "YlGnBu",
+                   title = "Corn Harvest, 1992 <br> (1,000 bushels)", 
+                   file_name="harvest_corn_1992")
 
 # --- soybean ----------
 
+#  ---- changes ----
+breaks_geo_change_soybean <- c(-Inf,-5, -3, -2, -1, 0, 1, 2, 3, 5, Inf)*1000
+
+list_specs <- data.frame(
+  yr1 = c(2007, 2002, 1997, 1992),
+  yr2 = c(2012, 2007, 2002, 1997)
+) %>% 
+  mutate(
+    num1 = substr(yr1, 3,4), 
+    num2 = substr(yr2, 3,4),
+    var = paste0("change_soybean_", num1, "_", num2),
+    var1 = paste0("harvest_soybean_", num1),
+    var2 = paste0("harvest_soybean_", num2)
+  )
+
+
+list_specs %>%
+  with(
+    for (i in 1:length(list_specs[[1]])) {
+      
+      gen_ag_census_leaf(geo_ag_census, 
+                         var=var[[i]], 
+                         var1=var1[[i]], var2=var2[[i]], 
+                         label1=yr1[[i]], label2=yr2[[i]], 
+                         breaks = breaks_geo_change_soybean,
+                         title = paste("Change in soybean Harvest,", yr1[[i]], "to", yr2[[i]],
+                                       "<br> (1,000 bushels)"), 
+                         file_name=paste0("change_harvest_soybean_", yr1[[i]], "_", yr2[[i]]))
+    }
+  )
+
+#  ---- levels ----
+
+breaks_geo_soybean <- c(0, 1, 2, 3, 5, 10, 20, 40, 60, Inf)*1000
+
+list_specs <- data.frame(
+  yr1 = c(2007, 2002, 1997, 1992),
+  yr2 = c(2012, 2007, 2002, 1997)
+) %>% 
+  mutate(
+    num1 = substr(yr1, 3,4), 
+    num2 = substr(yr2, 3,4),
+    var  = paste0("harvest_soybean_", num2),
+    var1 = paste0("harvest_soybean_", num1),
+    var2 = paste0("harvest_soybean_", num2)
+  )
+
+
+list_specs %>%
+  with(
+    for (i in 1:length(list_specs[[1]])) {
+      
+      gen_ag_census_leaf(geo_ag_census, 
+                         var=var[[i]], 
+                         var1=var1[[i]], var2=var2[[i]], 
+                         label1=yr1[[i]], label2=yr2[[i]], 
+                         breaks = breaks_geo_soybean,
+                         palette = "YlGnBu",
+                         title = paste("soybean Harvest,", yr2[[i]], "<br> (1,000 bushels)"), 
+                         file_name=paste0("harvest_soybean_",yr2[[i]]))
+      
+    }
+  )
+
+# the last/oldest census year uses the same popup as one-census before 
+gen_ag_census_leaf(geo_ag_census, 
+                   var="harvest_soybean_92", 
+                   var1="harvest_soybean_92", var2="harvest_soybean_97", 
+                   label1=1992, label2=1997, 
+                   breaks = breaks_geo_soybean,
+                   palette = "YlGnBu",
+                   title = "soybean Harvest, 1992 <br> (1,000 bushels)", 
+                   file_name="harvest_soybean_1992")
 
 
 
-# --- Hispanic ----------
+
+# --- Hispanic population ----------
+
+load("data/hispanic.RData")
 
 
+hisp_leaf <- function(data_FIPS, shapefile, var, suffix="%", no_growth =FALSE, ...) {
+  
+  geo_data <- geo_join(shapefile, data_FIPS, "FIPS", "FIPS")
+      # assuming id to merge are named "FIPS"
+  
+  if (no_growth) {
+    popup <- 
+      paste0(
+        geo_data$NAME, ", ", geo_data$state, 
+        "<br> Total pop.: ", formatcomma(geo_data@data[["pop_all"]]), 
+        "<br> Hispanic pop.: ", formatcomma(geo_data@data[["pop_hisp"]]), 
+        "<br> Hispanic prop.: ",  round(geo_data@data[["rate_hisp"]], 2) ,"%"
+      )
+     
+  } else {
+    popup <- 
+      paste0(
+        geo_data$NAME, ", ", geo_data$state, 
+        "<br> Total pop.: ", formatcomma(geo_data@data[["pop_all"]]), 
+        "<br> Hispanic pop.: ", formatcomma(geo_data@data[["pop_hisp"]]), 
+        "<br> Hispanic prop.: ",  round(geo_data@data[["rate_hisp"]], 2) ,"%",
+        "<br> Total pop. growth: ",    round(geo_data@data[["growth_all"]], 2), "%/year",
+        "<br> Hispanic pop. growth: ", round(geo_data@data[["growth_hisp"]], 2), "%/year",
+        "<br> Hispanic pop. 5 years ago: ", formatcomma(geo_data@data[["pop_hisp_l5"]]),
+        "<br> Change in Hispanic pop: ", formatcomma(geo_data@data[["hisp_change"]])
+      )
+  }
+  
+    gen_leaf_map(geo_data = geo_data, var=var, popup = popup, ...)
+}
+
+
+hispanic_90_15 <- hispanic_90_15 %>%
+  group_by(FIPS) %>% 
+  mutate(
+    pop_all_l5 = dplyr::lag(pop_all, 5),    
+    pop_hisp_l5 = dplyr::lag(pop_hisp, 5),
+    hisp_change = pop_hisp - pop_hisp_l5,
+    growth_all = (pop_all - pop_all_l5)/pop_all_l5*100/5,
+    growth_hisp = (pop_hisp - pop_hisp_l5)/pop_hisp_l5*100/5
+  ) %>% ungroup()
+
+hispanic_90_15 %>% filter(FIPS==27053) %>% "["(1:20,)
+
+my_breaks_hispanic <- c(0, 1, 3, 5, 10, 20, 30, 40, 100)
+
+for (y in c(1990, 1995, 2000, 2010, 2015)) {
+  if (y==1990) no_growth <- TRUE else no_growth <- FALSE 
+  hispanic_90_15 %>% filter(year==y) %>%
+    mutate(rate_hisp = rate_hisp * 100) %>%
+    hisp_leaf(shapefile, 
+              var = "rate_hisp", 
+              breaks = my_breaks_hispanic,
+              title= paste("Relative Hispanic population <br> by county,", y,"(%):"),
+              palette = "YlGnBu",
+              no_growth = no_growth,
+              file_name = paste0("hispanic_pop_",y))
+}
+
+
+my_breaks_change_pct_hispanic <- c(-Inf, -5, -3, -1, 0, 1, 3, 5, Inf)
+
+for (y in c(1995, 2000, 2005, 2010, 2015)) {
+  if (y==1990) no_growth <- TRUE else no_growth <- FALSE 
+  hispanic_90_15 %>% filter(year==y) %>%
+    mutate(rate_hisp = rate_hisp * 100) %>%
+    hisp_leaf(shapefile, 
+              var = "growth_hisp", 
+              breaks = my_breaks_change_pct_hispanic,
+              title= paste("Change in Hispanic population <br> by county,", y,"(%):"),
+              palette = "RdYlBu",
+              no_growth = no_growth,
+              file_name = paste0("change_pct_hispanic_pop_",y))
+}
+
+
+my_breaks_change_hispanic <- c(-Inf, -5000, -3000, -1000, 0, 1000, 3000, 5000, Inf)
+
+for (y in c(1995, 2000, 2005, 2010, 2015)) {
+  if (y==1990) no_growth <- TRUE else no_growth <- FALSE 
+  hispanic_90_15 %>% filter(year==y) %>%
+    mutate(rate_hisp = rate_hisp * 100) %>%
+    hisp_leaf(shapefile, 
+              var = "hisp_change", 
+              breaks = my_breaks_change_hispanic,
+              title= paste("Change in Hispanic population <br> by county,", y,"to", (y-5),"(persons):"),
+              palette = "RdYlBu",
+              no_growth = no_growth,
+              file_name = paste0("change_hispanic_pop_",y))
+}

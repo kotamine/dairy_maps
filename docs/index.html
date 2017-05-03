@@ -9,7 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Kota Minegishi, Dairy Extension Economist at the University of Minnesota" />
+<meta name="author" content="Kota Minegishi" />
 
 
 <title>Dairy Maps</title>
@@ -118,18 +118,27 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Dairy Maps</h1>
 <h3 class="subtitle"><em>Visualizing dairy geography</em></h3>
-<h4 class="author"><em>Kota Minegishi, Dairy Extension Economist at the University of Minnesota</em></h4>
-<h4 class="date"><em>Created: May 1, 2017</em></h4>
+<h4 class="author"><em>Kota Minegishi</em></h4>
+<h4 class="date"><em>Created: May 2, 2017</em></h4>
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#milk-cow-inventory"><span class="toc-section-number">1</span> Milk Cow Inventory</a></li>
+<li><a href="#dairy-employment"><span class="toc-section-number">2</span> Dairy Employment</a></li>
+<li><a href="#grain-production"><span class="toc-section-number">3</span> Grain Production</a></li>
+<li><a href="#hispanic-population"><span class="toc-section-number">4</span> Hispanic Population</a></li>
+</ul>
+</div>
 
+<p>The following are <strong>interactive maps</strong>. Be sure to click on a county or state to see the data.</p>
 <div id="milk-cow-inventory" class="section level1">
 <h1><span class="header-section-number">1</span> Milk Cow Inventory</h1>
 <p>Data Source: US Agricultural Census.</p>
 <p>Milk cow inventory can be calculated from <a href="%22http://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/35206">Agricultural Census summary files</a>. We add up milk cows from the dairy farms with 20 or more cows.</p>
-<div id="levels" class="section level2">
-<h2><span class="header-section-number">1.1</span> Levels</h2>
+<div id="levels" class="section level4 unnumbered">
+<h4>Levels</h4>
 <ul>
 <li><p><a href="html/cow_inventory_2012.html" target="_blank">2012</a></p></li>
 <li><p><a href="html/cow_inventory_2007.html" target="_blank">2007</a></p></li>
@@ -138,8 +147,8 @@ $(document).ready(function () {
 <li><p><a href="html/cow_inventory_1992.html" target="_blank">1992</a></p></li>
 </ul>
 </div>
-<div id="changes" class="section level2">
-<h2><span class="header-section-number">1.2</span> Changes</h2>
+<div id="changes" class="section level4 unnumbered">
+<h4>Changes</h4>
 <ul>
 <li><p><a href="html/change_cow_inventory_2007_2012.html" target="_blank">2007 to 2012</a></p></li>
 <li><p><a href="html/change_cow_inventory_2007_2012.html" target="_blank">2002 to 2007</a></p></li>
@@ -151,19 +160,78 @@ $(document).ready(function () {
 <div id="dairy-employment" class="section level1">
 <h1><span class="header-section-number">2</span> Dairy Employment</h1>
 <p>Data Source:Bureau of Labor Statistics</p>
-<p>The Quarterly Census of Employment and Wages (QCEW) provides state and county level employment records (establishments, employees, and wages) by industry via North American Industry Classification System (NAICS). The QCEW is a byproduct of the state-level unemployment insurance (UI) administrative accounts. Since many small to medium dairy farms are not required to provide UI to their employees, the total employement in dairy farming is smaller than the actual. Nevertheless, it captures employment dynamics at a large scale. Currently, the QCEW is <a href="https://data.bls.gov/cew/doc/access/csv_data_slices.htm">publically available</a> from 2012 to a part of 2016.</p>
-<div id="levels-1" class="section level2">
-<h2><span class="header-section-number">2.1</span> Levels</h2>
+<p>The Quarterly Census of Employment and Wages (QCEW) provides state and county level employment records (establishments, employees, and wages) by industry via North American Industry Classification System (NAICS). The QCEW is a byproduct of the state-level unemployment insurance (UI) administrative accounts. Since many small to medium dairy farms are not required to provide UI to their employees, the total employement in dairy farming is smaller than the actual. Nevertheless, it captures employment dynamics at a large scale. Currently, the QCEW is <a href="https://data.bls.gov/cew/doc/access/csv_data_slices.htm">publically available</a> from 2012 to a part of 2016. Information on NAICS is found <a href="https://classcodes.com/naics-4-digit-industry-group-code-list/">here</a>.</p>
+<div id="levels-1" class="section level4 unnumbered">
+<h4>Levels</h4>
 <ul>
 <li><p><a href="html/employment_dairy_farming.html" target="_blank">Dairy farming (NAICS 112120)</a></p></li>
 <li><p><a href="html/employment_dairy_food_mf.html" target="_blank">Dairy food manufacturing (NAICS 3115)</a></p></li>
+<li><p><a href="html/employment_animal_processing.html" target="_blank">Animal processing (NAICS 3116)</a></p></li>
 </ul>
 </div>
-<div id="changes-1" class="section level2">
-<h2><span class="header-section-number">2.2</span> Changes</h2>
+<div id="changes-1" class="section level4 unnumbered">
+<h4>Changes</h4>
 <ul>
 <li><p><a href="html/employment_change_dairy_farming.html" target="_blank">Dairy farming (NAICS 112120)</a></p></li>
 <li><p><a href="html/employment_change_dairy_food_mf.html" target="_blank">Dairy food manufacturing (NAICS 3115)</a></p></li>
+<li><p><a href="html/employment_change_animal_processing.html" target="_blank">Animal processing (NAICS 3116)</a></p></li>
+</ul>
+</div>
+</div>
+<div id="grain-production" class="section level1">
+<h1><span class="header-section-number">3</span> Grain Production</h1>
+<p>Data Source: US Agricultural Census.</p>
+<div id="levels-2" class="section level4 unnumbered">
+<h4>Levels</h4>
+<ul>
+<li><p><a href="html/harvest_corn_2012.html" target="_blank">Corn harvest, 2012</a></p></li>
+<li><p><a href="html/harvest_corn_2007.html" target="_blank">Corn harvest, 2007</a></p></li>
+<li><p><a href="html/harvest_corn_2002.html" target="_blank">Corn harvest, 2002</a></p></li>
+<li><p><a href="html/harvest_corn_1997.html" target="_blank">Corn harvest, 1997</a></p></li>
+<li><p><a href="html/harvest_corn_1992.html" target="_blank">Corn harvest, 1992</a></p></li>
+<li><p><a href="html/harvest_soybean_2012.html" target="_blank">Soybean harvest, 2012</a></p></li>
+<li><p><a href="html/harvest_soybean_2007.html" target="_blank">Soybean harvest, 2007</a></p></li>
+<li><p><a href="html/harvest_soybean_2002.html" target="_blank">Soybean harvest, 2002</a></p></li>
+<li><p><a href="html/harvest_soybean_1997.html" target="_blank">Soybean harvest, 1997</a></p></li>
+<li><p><a href="html/harvest_soybean_1992.html" target="_blank">Soybean harvest, 1992</a></p></li>
+</ul>
+</div>
+<div id="changes-2" class="section level4 unnumbered">
+<h4>Changes</h4>
+<ul>
+<li><p><a href="html/change_harvest_corn_2007_2012.html" target="_blank">Change in corn harvest, 2007 to 2012</a></p></li>
+<li><p><a href="html/change_harvest_corn_2002_2007.html" target="_blank">Change in corn harvest, 2002 to 2007</a></p></li>
+<li><p><a href="html/change_harvest_corn_1997_2002.html" target="_blank">Change in corn harvest, 1997 to 2002</a></p></li>
+<li><p><a href="html/change_harvest_corn_1992_1997.html" target="_blank">Change in corn harvest, 1992 to 1997</a></p></li>
+<li><p><a href="html/change_harvest_soybean_2007_2012.html" target="_blank">Change in soybean harvest, 2007 to 2012</a></p></li>
+<li><p><a href="html/change_harvest_soybean_2002_2007.html" target="_blank">Change in soybean harvest, 2002 to 2007</a></p></li>
+<li><p><a href="html/change_harvest_soybean_1997_2002.html" target="_blank">Change in soybean harvest, 1997 to 2002</a></p></li>
+<li><p><a href="html/change_harvest_soybean_1992_1997.html" target="_blank">Change in soybean harvest, 1992 to 1997</a></p></li>
+</ul>
+</div>
+</div>
+<div id="hispanic-population" class="section level1">
+<h1><span class="header-section-number">4</span> Hispanic Population</h1>
+<p>Data Source: <a href="https://seer.cancer.gov/popdata/download.html">NIH National Cancer Institute</a></p>
+<div id="levels-3" class="section level4 unnumbered">
+<h4>Levels</h4>
+<ul>
+<li><p><a href="html/hispanic_pop_2015.html" target="_blank">Relative Hispanic population, 2015</a></p></li>
+<li><p><a href="html/hispanic_pop_2010.html" target="_blank">Relative Hispanic population, 2010</a></p></li>
+<li><p><a href="html/hispanic_pop_2005.html" target="_blank">Relative Hispanic population, 2005</a></p></li>
+<li><p><a href="html/hispanic_pop_2000.html" target="_blank">Relative Hispanic population, 2000</a></p></li>
+<li><p><a href="html/hispanic_pop_1995.html" target="_blank">Relative Hispanic population, 1995</a></p></li>
+<li><p><a href="html/hispanic_pop_1990.html" target="_blank">Relative Hispanic population, 1990</a></p></li>
+</ul>
+</div>
+<div id="changes-3" class="section level4 unnumbered">
+<h4>Changes</h4>
+<ul>
+<li><p><a href="html/change_hispanic_pop_2015.html" target="_blank">Change in Hispanic population, 2010 to 2015</a></p></li>
+<li><p><a href="html/change_hispanic_pop_2010.html" target="_blank">Change in Hispanic population, 2005 to 2010</a></p></li>
+<li><p><a href="html/change_hispanic_pop_2005.html" target="_blank">Change in Hispanic population, 2000 to 2005</a></p></li>
+<li><p><a href="html/change_hispanic_pop_2000.html" target="_blank">Change in Hispanic population, 1995 to 2000</a></p></li>
+<li><p><a href="html/change_hispanic_pop_1995.html" target="_blank">Change in Hispanic population, 1990 to 1995</a></p></li>
 </ul>
 </div>
 </div>
