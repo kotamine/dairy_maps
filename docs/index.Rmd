@@ -190,7 +190,7 @@ Note: The data collection at the county level was not very comprehensive in earl
 <a href="html/change_rent_pastureland_2014.html" target="_blank" >2014</a>, 
 <a href="html/change_rent_pastureland_2016.html" target="_blank" >2016</a>
 
-
+For the evaluating land rental decisions, [Fair Rent](https://fairrent.umn.edu/Default.aspx) may be useful. 
 
 # Hispanic Population
 Data Source: [NIH National Cancer Institute](https://seer.cancer.gov/popdata/download.html)
