@@ -2,7 +2,7 @@
 title: "Dairy Maps"
 subtitle: "Visualizing dairy geography"
 author: "Kota Minegishi"
-date: "Created: May 2, 2017"
+date: "Updated: May 7, 2017"
 output: 
   html_document:
     toc: true
