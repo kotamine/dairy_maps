@@ -68,7 +68,7 @@ Also, [USDA's 2012 Ag Census visualization page](https://www.agcensus.usda.gov/P
 # Dairy Employment
 Data Source: Bureau of Labor Statistics
 
-The Quarterly Census of Employment and Wages (QCEW) provides state and county level employment records (establishments, employees, and wages) by industry via North American Industry Classification System (NAICS). The QCEW is a byproduct of the state-level unemployment insurance (UI) administrative accounts. Since many small to medium dairy farms are not required to provide UI to their employees, the total employement in dairy farming is smaller than the actual. Nevertheless, it captures employment dynamics at a large scale. Currently, the QCEW is [publically available](https://data.bls.gov/cew/doc/access/csv_data_slices.htm)  from 2012 to a part of 2016. Information on NAICS is found [here](https://classcodes.com/naics-4-digit-industry-group-code-list/).  Also, due to [BLS's confidentiality rules](https://www.bls.gov/cew/cewfaq.htm#Q14), data for some counties cannot be disclosed to the public and hence are missing. Please note that with these shortcomings the following data are incomlete.     
+The Quarterly Census of Employment and Wages (QCEW) provides state and county level employment records (establishments, employees, and wages) by industry via North American Industry Classification System (NAICS). The QCEW is a byproduct of the state-level unemployment insurance (UI) administrative accounts. Since many small to medium dairy farms are not required to provide UI to their employees, the total employment in dairy farming is smaller than the actual. Nevertheless, it captures employment dynamics at a large scale. Currently, the QCEW is [publically available](https://data.bls.gov/cew/doc/access/csv_data_slices.htm)  from 2012 to a part of 2016. Information on NAICS is found [here](https://classcodes.com/naics-4-digit-industry-group-code-list/).  Also, due to [BLS's confidentiality rules](https://www.bls.gov/cew/cewfaq.htm#Q14), data for some counties cannot be disclosed to the public and hence are missing. Please note that with these shortcomings the following data are incomplete.     
 
 #### Levels {-}
 
@@ -129,7 +129,7 @@ Data Source: US Agricultural Census.
 # Rental Rates of Agricultural Land
 Data Source: [National Agricultural Statistics Service](https://www.nass.usda.gov/Surveys/Guide_to_NASS_Surveys/Cash_Rents_by_County/)
 
-Note: The data collection at the county level was not very comprehensive in early years. Since 2014, the data are biannually collected. 
+Note: The data collection at the county level was not very comprehensive in early years. Since 2014, the data have been collected biannually.
 
 #### Levels {-}
 
