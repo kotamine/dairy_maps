@@ -87,13 +87,13 @@ The Quarterly Census of Employment and Wages (QCEW) provides state and county le
 #### Changes {-}
 
 * Dairy farming (NAICS 112120): <a href="html/employment_change_dairy_farming.html" target="_blank">county</a>, 
-<a href="html/employment_st_dairy_farming.html" target="_blank">state</a>
+<a href="html/employment_change_st_dairy_farming.html" target="_blank">state</a>
 
 * Dairy food manufacturing (NAICS 3115): <a href="html/employment_change_dairy_food_mf.html" target="_blank">county</a>, 
-<a href="html/employment_st_dairy_food_mf.html" target="_blank">state</a>
+<a href="html/employment_change_st_dairy_food_mf.html" target="_blank">state</a>
 
 * Animal processing (NAICS 3116): <a href="html/employment_change_animal_processing.html" target="_blank">county</a>, 
-<a href="html/employment_st_animal_processing.html" target="_blank">state</a>
+<a href="html/employment_change_st_animal_processing.html" target="_blank">state</a>
 
 
 # Grain Production
