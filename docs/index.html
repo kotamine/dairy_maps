@@ -128,53 +128,72 @@ $(document).ready(function () {
 <li><a href="#milk-cow-inventory"><span class="toc-section-number">1</span> Milk Cow Inventory</a></li>
 <li><a href="#dairy-employment"><span class="toc-section-number">2</span> Dairy Employment</a></li>
 <li><a href="#grain-production"><span class="toc-section-number">3</span> Grain Production</a></li>
-<li><a href="#hispanic-population"><span class="toc-section-number">4</span> Hispanic Population</a></li>
+<li><a href="#rental-rates-of-agricultural-land"><span class="toc-section-number">4</span> Rental Rates of Agricultural Land</a></li>
+<li><a href="#hispanic-population"><span class="toc-section-number">5</span> Hispanic Population</a></li>
 </ul>
 </div>
 
+<!-- <script src="target_blank.js"></script> -->
+<!-- ```{r, results='asis'} -->
+<!-- cat(' -->
+<!-- <script> -->
+<!--   d3.select("body").append("p").text("d3 made me") -->
+<!-- </script> -->
+<!-- ') -->
+<!-- ``` -->
+<!-- <script> -->
+<!-- var links = document.querySelectorAll( 'a' ); -->
+<!--     for( var i=0, limit=links.length; i<limit; i++ ) { -->
+<!--         if(links[i].href.indexOf(location.hostname)===-1){ -->
+<!--         links[i].setAttribute("target", "_blank"); -->
+<!--       } -->
+<!--     } -->
+<!-- </script> -->
+<!-- ```{r, echo = FALSE, results = 'asis'}  -->
+<!-- library(shiny) -->
+<!--   tags$head( -->
+<!--     tags$script(type ="text/javascript",  src ="target_blank.js") -->
+<!--   ) -->
+<!-- ``` -->
 <p>The following are <strong>interactive maps</strong>. Be sure to click on a county or state to see the data.</p>
 <div id="milk-cow-inventory" class="section level1">
 <h1><span class="header-section-number">1</span> Milk Cow Inventory</h1>
 <p>Data Source: US Agricultural Census.</p>
-<p>Milk cow inventory can be calculated from <a href="%22http://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/35206">Agricultural Census summary files</a>. We add up milk cows from the dairy farms with 20 or more cows.</p>
+<p>Milk cow inventory can be calculated from <a href="http://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/35206">Agricultural Census summary files</a>. We add up milk cows from the dairy farms with 20 or more cows.</p>
 <div id="levels" class="section level4 unnumbered">
 <h4>Levels</h4>
+<!-- * [2012](html/cow_inventory_2012.html)  -->
 <ul>
-<li><p><a href="html/cow_inventory_2012.html" target="_blank">2012</a></p></li>
-<li><p><a href="html/cow_inventory_2007.html" target="_blank">2007</a></p></li>
-<li><p><a href="html/cow_inventory_2002.html" target="_blank">2002</a></p></li>
-<li><p><a href="html/cow_inventory_1997.html" target="_blank">1997</a></p></li>
-<li><p><a href="html/cow_inventory_1992.html" target="_blank">1992</a></p></li>
+<li><a href="html/cow_inventory_1992.html" target="_blank">1992</a>, <a href="html/cow_inventory_1997.html" target="_blank">1997</a>, <a href="html/cow_inventory_2002.html" target="_blank">2002</a>, <a href="html/cow_inventory_2007.html" target="_blank">2007</a>, <a href="html/cow_inventory_2012.html" target="_blank">2012</a></li>
 </ul>
 </div>
 <div id="changes" class="section level4 unnumbered">
 <h4>Changes</h4>
 <ul>
-<li><p><a href="html/change_cow_inventory_2007_2012.html" target="_blank">2007 to 2012</a></p></li>
-<li><p><a href="html/change_cow_inventory_2007_2012.html" target="_blank">2002 to 2007</a></p></li>
-<li><p><a href="html/change_cow_inventory_2007_2012.html" target="_blank">1997 to 2002</a></p></li>
-<li><p><a href="html/change_cow_inventory_2007_2012.html" target="_blank">1992 to 1997</a></p></li>
+<li><a href="html/change_cow_inventory_2007_2012.html" target="_blank">1992-1997</a>, <a href="html/change_cow_inventory_2007_2012.html" target="_blank">1997-2002</a>, <a href="html/change_cow_inventory_2007_2012.html" target="_blank">2002-2007</a>, <a href="html/change_cow_inventory_2007_2012.html" target="_blank">2007-2012</a></li>
 </ul>
+<p>Also, <a href="https://www.agcensus.usda.gov/Publications/2012/Online_Resources/Ag_Census_Web_Maps/">USDA’s 2012 Ag Census visualization page</a> has other map resources.</p>
 </div>
 </div>
 <div id="dairy-employment" class="section level1">
 <h1><span class="header-section-number">2</span> Dairy Employment</h1>
-<p>Data Source:Bureau of Labor Statistics</p>
-<p>The Quarterly Census of Employment and Wages (QCEW) provides state and county level employment records (establishments, employees, and wages) by industry via North American Industry Classification System (NAICS). The QCEW is a byproduct of the state-level unemployment insurance (UI) administrative accounts. Since many small to medium dairy farms are not required to provide UI to their employees, the total employement in dairy farming is smaller than the actual. Nevertheless, it captures employment dynamics at a large scale. Currently, the QCEW is <a href="https://data.bls.gov/cew/doc/access/csv_data_slices.htm">publically available</a> from 2012 to a part of 2016. Information on NAICS is found <a href="https://classcodes.com/naics-4-digit-industry-group-code-list/">here</a>.</p>
+<p>Data Source: Bureau of Labor Statistics</p>
+<p>The Quarterly Census of Employment and Wages (QCEW) provides state and county level employment records (establishments, employees, and wages) by industry via North American Industry Classification System (NAICS). The QCEW is a byproduct of the state-level unemployment insurance (UI) administrative accounts. Since many small to medium dairy farms are not required to provide UI to their employees, the total employement in dairy farming is smaller than the actual. Nevertheless, it captures employment dynamics at a large scale. Currently, the QCEW is <a href="https://data.bls.gov/cew/doc/access/csv_data_slices.htm">publically available</a> from 2012 to a part of 2016. Information on NAICS is found <a href="https://classcodes.com/naics-4-digit-industry-group-code-list/">here</a>. Also, due to <a href="https://www.bls.gov/cew/cewfaq.htm#Q14">BLS’s confidentiality rules</a>, data for some counties cannot be disclosed to the public and hence are missing. Please note that with these shortcomings the following data are incomlete.</p>
 <div id="levels-1" class="section level4 unnumbered">
 <h4>Levels</h4>
+<!-- * Dairy farming (NAICS 112120): [county](html/employment_dairy_farming.html){:target="_blank"}, [state](html/employment_st_dairy_farming.html) -->
 <ul>
-<li><p><a href="html/employment_dairy_farming.html" target="_blank">Dairy farming (NAICS 112120)</a></p></li>
-<li><p><a href="html/employment_dairy_food_mf.html" target="_blank">Dairy food manufacturing (NAICS 3115)</a></p></li>
-<li><p><a href="html/employment_animal_processing.html" target="_blank">Animal processing (NAICS 3116)</a></p></li>
+<li><p>Dairy farming (NAICS 112120): <a href="html/employment_dairy_farming.html" target="_blank">county</a>, <a href="html/employment_st_change_dairy_farming.html" target="_blank">state</a></p></li>
+<li><p>Dairy food manufacturing (NAICS 3115): <a href="html/employment_dairy_food_mf.html" target="_blank">county</a>, <a href="html/employment_st_dairy_food_mf.html" target="_blank">state</a></p></li>
+<li><p>Animal processing (NAICS 3116): <a href="html/employment_animal_processing.html" target="_blank">county</a>, <a href="html/employment_st_animal_processing.html" target="_blank">state</a></p></li>
 </ul>
 </div>
 <div id="changes-1" class="section level4 unnumbered">
 <h4>Changes</h4>
 <ul>
-<li><p><a href="html/employment_change_dairy_farming.html" target="_blank">Dairy farming (NAICS 112120)</a></p></li>
-<li><p><a href="html/employment_change_dairy_food_mf.html" target="_blank">Dairy food manufacturing (NAICS 3115)</a></p></li>
-<li><p><a href="html/employment_change_animal_processing.html" target="_blank">Animal processing (NAICS 3116)</a></p></li>
+<li><p>Dairy farming (NAICS 112120): <a href="html/employment_change_dairy_farming.html" target="_blank">county</a>, <a href="html/employment_st_dairy_farming.html" target="_blank">state</a></p></li>
+<li><p>Dairy food manufacturing (NAICS 3115): <a href="html/employment_change_dairy_food_mf.html" target="_blank">county</a>, <a href="html/employment_st_dairy_food_mf.html" target="_blank">state</a></p></li>
+<li><p>Animal processing (NAICS 3116): <a href="html/employment_change_animal_processing.html" target="_blank">county</a>, <a href="html/employment_st_animal_processing.html" target="_blank">state</a></p></li>
 </ul>
 </div>
 </div>
@@ -184,54 +203,52 @@ $(document).ready(function () {
 <div id="levels-2" class="section level4 unnumbered">
 <h4>Levels</h4>
 <ul>
-<li><p><a href="html/harvest_corn_2012.html" target="_blank">Corn harvest, 2012</a></p></li>
-<li><p><a href="html/harvest_corn_2007.html" target="_blank">Corn harvest, 2007</a></p></li>
-<li><p><a href="html/harvest_corn_2002.html" target="_blank">Corn harvest, 2002</a></p></li>
-<li><p><a href="html/harvest_corn_1997.html" target="_blank">Corn harvest, 1997</a></p></li>
-<li><p><a href="html/harvest_corn_1992.html" target="_blank">Corn harvest, 1992</a></p></li>
-<li><p><a href="html/harvest_soybean_2012.html" target="_blank">Soybean harvest, 2012</a></p></li>
-<li><p><a href="html/harvest_soybean_2007.html" target="_blank">Soybean harvest, 2007</a></p></li>
-<li><p><a href="html/harvest_soybean_2002.html" target="_blank">Soybean harvest, 2002</a></p></li>
-<li><p><a href="html/harvest_soybean_1997.html" target="_blank">Soybean harvest, 1997</a></p></li>
-<li><p><a href="html/harvest_soybean_1992.html" target="_blank">Soybean harvest, 1992</a></p></li>
+<li><p>Corn harvest: <a href="html/harvest_corn_1992.html" target="_blank">1992</a>, <a href="html/harvest_corn_1997.html" target="_blank">1997</a>, <a href="html/harvest_corn_2002.html" target="_blank">2002</a>, <a href="html/harvest_corn_2007.html" target="_blank">2007</a>, <a href="html/harvest_corn_2012.html" target="_blank">2012</a></p></li>
+<li><p>Soybean harvest: <a href="html/harvest_soybean_1992.html" target="_blank">1992</a>, <a href="html/harvest_soybean_1997.html" target="_blank">1997</a>, <a href="html/harvest_soybean_2002.html" target="_blank">2002</a>, <a href="html/harvest_soybean_2007.html" target="_blank">2007</a>, <a href="html/harvest_soybean_2012.html" target="_blank">2012</a></p></li>
 </ul>
 </div>
 <div id="changes-2" class="section level4 unnumbered">
 <h4>Changes</h4>
 <ul>
-<li><p><a href="html/change_harvest_corn_2007_2012.html" target="_blank">Change in corn harvest, 2007 to 2012</a></p></li>
-<li><p><a href="html/change_harvest_corn_2002_2007.html" target="_blank">Change in corn harvest, 2002 to 2007</a></p></li>
-<li><p><a href="html/change_harvest_corn_1997_2002.html" target="_blank">Change in corn harvest, 1997 to 2002</a></p></li>
-<li><p><a href="html/change_harvest_corn_1992_1997.html" target="_blank">Change in corn harvest, 1992 to 1997</a></p></li>
-<li><p><a href="html/change_harvest_soybean_2007_2012.html" target="_blank">Change in soybean harvest, 2007 to 2012</a></p></li>
-<li><p><a href="html/change_harvest_soybean_2002_2007.html" target="_blank">Change in soybean harvest, 2002 to 2007</a></p></li>
-<li><p><a href="html/change_harvest_soybean_1997_2002.html" target="_blank">Change in soybean harvest, 1997 to 2002</a></p></li>
-<li><p><a href="html/change_harvest_soybean_1992_1997.html" target="_blank">Change in soybean harvest, 1992 to 1997</a></p></li>
+<li><p>Change in corn harvest: <a href="html/change_harvest_corn_1992_1997.html" target="_blank">1992-1997</a>, <a href="html/change_harvest_corn_1997_2002.html" target="_blank">1997-2002</a>, <a href="html/change_harvest_corn_2002_2007.html" target="_blank">2002-2007</a>, <a href="html/change_harvest_corn_2007_2012.html" target="_blank">2007-2012</a></p></li>
+<li><p>Change in soybean harvest: <a href="html/change_harvest_soybean_1992_1997.html" target="_blank">1992-1997</a>, <a href="html/change_harvest_soybean_1997_2002.html" target="_blank">1997-2002</a>, <a href="html/change_harvest_soybean_2002_2007.html" target="_blank">2002-2007</a>, <a href="html/change_harvest_soybean_2007_2012.html" target="_blank">2007-2012</a></p></li>
 </ul>
 </div>
 </div>
-<div id="hispanic-population" class="section level1">
-<h1><span class="header-section-number">4</span> Hispanic Population</h1>
-<p>Data Source: <a href="https://seer.cancer.gov/popdata/download.html">NIH National Cancer Institute</a></p>
+<div id="rental-rates-of-agricultural-land" class="section level1">
+<h1><span class="header-section-number">4</span> Rental Rates of Agricultural Land</h1>
+<p>Data Source: <a href="https://www.nass.usda.gov/Surveys/Guide_to_NASS_Surveys/Cash_Rents_by_County/">National Agricultural Statistics Service</a></p>
+<p>Note: The data collection at the county level was not very comprehensive in early years. Since 2014, the data are biannually collected.</p>
 <div id="levels-3" class="section level4 unnumbered">
 <h4>Levels</h4>
 <ul>
-<li><p><a href="html/hispanic_pop_2015.html" target="_blank">Relative Hispanic population, 2015</a></p></li>
-<li><p><a href="html/hispanic_pop_2010.html" target="_blank">Relative Hispanic population, 2010</a></p></li>
-<li><p><a href="html/hispanic_pop_2005.html" target="_blank">Relative Hispanic population, 2005</a></p></li>
-<li><p><a href="html/hispanic_pop_2000.html" target="_blank">Relative Hispanic population, 2000</a></p></li>
-<li><p><a href="html/hispanic_pop_1995.html" target="_blank">Relative Hispanic population, 1995</a></p></li>
-<li><p><a href="html/hispanic_pop_1990.html" target="_blank">Relative Hispanic population, 1990</a></p></li>
+<li><p>Non-irrigated cropland: <a href="html/rent_non_irrigated_2008.html" target="_blank">2008</a>, <a href="html/rent_non_irrigated_2009.html" target="_blank">2009</a>, <a href="html/rent_non_irrigated_2010.html" target="_blank">2010</a>, <a href="html/rent_non_irrigated_2011.html" target="_blank">2011</a>, <a href="html/rent_non_irrigated_2012.html" target="_blank">2012</a>, <a href="html/rent_non_irrigated_2013.html" target="_blank">2013</a>, <a href="html/rent_non_irrigated_2014.html" target="_blank">2014</a>, <a href="html/rent_non_irrigated_2016.html" target="_blank">2016</a></p></li>
+<li><p>Irrigated cropland: <a href="html/rent_irrigated_2008.html" target="_blank">2008</a>, <a href="html/rent_irrigated_2009.html" target="_blank">2009</a>, <a href="html/rent_irrigated_2010.html" target="_blank">2010</a>, <a href="html/rent_irrigated_2011.html" target="_blank">2011</a>, <a href="html/rent_irrigated_2012.html" target="_blank">2012</a>, <a href="html/rent_irrigated_2013.html" target="_blank">2013</a>, <a href="html/rent_irrigated_2014.html" target="_blank">2014</a>, <a href="html/rent_irrigated_2016.html" target="_blank">2016</a></p></li>
+<li><p>Pastureland: <a href="html/rent_pastureland_2008.html" target="_blank">2008</a>, <a href="html/rent_pastureland_2009.html" target="_blank">2009</a>, <a href="html/rent_pastureland_2010.html" target="_blank">2010</a>, <a href="html/rent_pastureland_2011.html" target="_blank">2011</a>, <a href="html/rent_pastureland_2012.html" target="_blank">2012</a>, <a href="html/rent_pastureland_2013.html" target="_blank">2013</a>, <a href="html/rent_pastureland_2014.html" target="_blank">2014</a>, <a href="html/rent_pastureland_2016.html" target="_blank">2016</a></p></li>
 </ul>
 </div>
 <div id="changes-3" class="section level4 unnumbered">
 <h4>Changes</h4>
 <ul>
-<li><p><a href="html/change_hispanic_pop_2015.html" target="_blank">Change in Hispanic population, 2010 to 2015</a></p></li>
-<li><p><a href="html/change_hispanic_pop_2010.html" target="_blank">Change in Hispanic population, 2005 to 2010</a></p></li>
-<li><p><a href="html/change_hispanic_pop_2005.html" target="_blank">Change in Hispanic population, 2000 to 2005</a></p></li>
-<li><p><a href="html/change_hispanic_pop_2000.html" target="_blank">Change in Hispanic population, 1995 to 2000</a></p></li>
-<li><p><a href="html/change_hispanic_pop_1995.html" target="_blank">Change in Hispanic population, 1990 to 1995</a></p></li>
+<li><p>Non-irrigated cropland: <a href="html/change_rent_non_irrigated_2008.html" target="_blank">2008</a>, <a href="html/change_rent_non_irrigated_2009.html" target="_blank">2009</a>, <a href="html/change_rent_non_irrigated_2010.html" target="_blank">2010</a>, <a href="html/change_rent_non_irrigated_2011.html" target="_blank">2011</a>, <a href="html/change_rent_non_irrigated_2012.html" target="_blank">2012</a>, <a href="html/change_rent_non_irrigated_2013.html" target="_blank">2013</a>, <a href="html/change_rent_non_irrigated_2014.html" target="_blank">2014</a>, <a href="html/change_rent_non_irrigated_2016.html" target="_blank">2016</a></p></li>
+<li><p>Irrigated cropland: <a href="html/change_rent_irrigated_2008.html" target="_blank">2008</a>, <a href="html/change_rent_irrigated_2009.html" target="_blank">2009</a>, <a href="html/change_rent_irrigated_2010.html" target="_blank">2010</a>, <a href="html/change_rent_irrigated_2011.html" target="_blank">2011</a>, <a href="html/change_rent_irrigated_2012.html" target="_blank">2012</a>, <a href="html/change_rent_irrigated_2013.html" target="_blank">2013</a>, <a href="html/change_rent_irrigated_2014.html" target="_blank">2014</a>, <a href="html/change_rent_irrigated_2016.html" target="_blank">2016</a></p></li>
+<li><p>Pastureland: <a href="html/change_rent_pastureland_2008.html" target="_blank">2008</a>, <a href="html/change_rent_pastureland_2009.html" target="_blank">2009</a>, <a href="html/change_rent_pastureland_2010.html" target="_blank">2010</a>, <a href="html/change_rent_pastureland_2011.html" target="_blank">2011</a>, <a href="html/change_rent_pastureland_2012.html" target="_blank">2012</a>, <a href="html/change_rent_pastureland_2013.html" target="_blank">2013</a>, <a href="html/change_rent_pastureland_2014.html" target="_blank">2014</a>, <a href="html/change_rent_pastureland_2016.html" target="_blank">2016</a></p></li>
+</ul>
+</div>
+</div>
+<div id="hispanic-population" class="section level1">
+<h1><span class="header-section-number">5</span> Hispanic Population</h1>
+<p>Data Source: <a href="https://seer.cancer.gov/popdata/download.html">NIH National Cancer Institute</a></p>
+<div id="levels-4" class="section level4 unnumbered">
+<h4>Levels</h4>
+<ul>
+<li>Relative Hispanic population: <a href="html/hispanic_pop_1990.html" target="_blank">1990</a>, <a href="html/hispanic_pop_1995.html" target="_blank">1995</a>, <a href="html/hispanic_pop_2000.html" target="_blank">2000</a>, <a href="html/hispanic_pop_2005.html" target="_blank">2005</a>, <a href="html/hispanic_pop_2010.html" target="_blank">2010</a>, <a href="html/hispanic_pop_2015.html" target="_blank">2015</a></li>
+</ul>
+</div>
+<div id="changes-4" class="section level4 unnumbered">
+<h4>Changes</h4>
+<ul>
+<li>Change in Hispanic population: <a href="html/change_hispanic_pop_1995.html" target="_blank">1990-1995</a>, <a href="html/change_hispanic_pop_2000.html" target="_blank">1995-2000</a>, <a href="html/change_hispanic_pop_2005.html" target="_blank">2000-2005</a>, <a href="html/change_hispanic_pop_2010.html" target="_blank">2005-2010</a>, <a href="html/change_hispanic_pop_2015.html" target="_blank">2010-2015</a></li>
 </ul>
 </div>
 </div>

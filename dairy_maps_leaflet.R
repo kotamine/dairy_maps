@@ -29,11 +29,15 @@ cnty <- map_data("county") # using ggplot2
 states <- map_data("state") # using ggplot2
 
 load("data/shape_counties.RData")
-df_shape_counties <- tidy(shape_counties) # convert to data frame
-df_shape_counties <- df_shape_counties %>%
-  inner_join(shape_counties@data, by="id") 
-df_shape_counties$region <- df_shape_counties$FIPS
+# df_shape_counties <- tidy(shape_counties) # convert to data frame
+# df_shape_counties <- df_shape_counties %>%
+#   inner_join(shape_counties@data, by="id") 
+# df_shape_counties$region <- df_shape_counties$FIPS
 
+# shapefile  <- counties(cb=TRUE, resolution = "20m")
+# shapefile$FIPS <- as.numeric(shapefile$GEOID)
+# shapefile$id   <- rownames(shapefile@data)
+# shapefile@data$NAME <- stri_encode(shape_counties@data$NAME,"","UTF-8")
 
 # ---------------------
 # functions for mapping 
@@ -74,11 +78,6 @@ formatcomma <- function(x, digits=NULL, dollar=FALSE) {
   if (dollar) { xFormat <- paste0("$", xFormat) }
   return(xFormat)
 } 
-
-shapefile  <- counties(cb=TRUE, resolution = "20m")
-shapefile$FIPS <- as.numeric(shapefile$GEOID)
-shapefile$id   <- rownames(shapefile@data)
-shapefile@data$NAME <- stri_encode(shape_counties@data$NAME,"","UTF-8")
 
 
 stateFromLower <-function(x, faclevs = 'selected') {
@@ -170,13 +169,14 @@ my_leaflet <- function(data_geo, var, pal, popup, title,
 
 load("data/labor_stats.RData")
 
-prep_bls_data <- function(df, yr = 2015) {
+prep_bls_data <- function(df, yr = 2015, shapefile, level = "county") {
   
   df <- df %>% 
     mutate( 
       FIPS = area_fips,
       FIPS_num = FIPS %>% as.numeric(), 
-      ST_FIPS = state %>% as.numeric()
+      ST_FIPS = state %>% as.numeric(),
+      ST_FIPS_char = state 
     ) 
 
   df <- df %>% 
@@ -186,7 +186,7 @@ prep_bls_data <- function(df, yr = 2015) {
       emplvl_lag3 = dplyr::lag(avg_emplvl, 3),
       emplvl_diff3 = avg_emplvl - emplvl_lag3
     ) %>% ungroup()
-  
+
   print("summary of emplvl_diff3 (employment difference)")
   print(summary(df$emplvl_diff3))
   
@@ -199,15 +199,21 @@ prep_bls_data <- function(df, yr = 2015) {
   df_sml <- df %>% dplyr::filter(year == yr) %>%
     full_join(df_state_fips, # from global env 
                       by =  c("ST_FIPS" = "state_fips"))
-            
-  geo_df <- geo_join(shapefile, df_sml,
-                     "FIPS", "FIPS_num") # from global env
   
+  if (level=="county")  {        
+    geo_df <- geo_join(shapefile, df_sml,
+                     "FIPS", "FIPS_num")  
+  } else {
+    geo_df <- geo_join(shapefile, df_sml,
+                       "FIPS", "ST_FIPS_char") 
+  }
   geo_df
 }
 
 
-add_map_var <- function(geo_data, var, varname, breaks, 
+
+
+add_map_var <- function(geo_data, var, varname, breaks,
                         large_limits=FALSE, large_limit_left=FALSE, large_limit_right=FALSE) {
   geo_data[[varname]] <- cut(geo_data@data[[var]], 
                              breaks = breaks,
@@ -221,7 +227,7 @@ add_map_var <- function(geo_data, var, varname, breaks,
 }
 
 
-gen_leaf_map  <- function(geo_data, var, file_name, 
+gen_leaf_map  <- function(geo_data, var, file_name, level = "county",
                            breaks, large_limits = FALSE, 
                            large_limit_left=FALSE, large_limit_right=FALSE,
                            palette = "RdYlBu",
@@ -240,9 +246,16 @@ gen_leaf_map  <- function(geo_data, var, file_name,
                           large_limit_right = large_limit_right)
   
   if (is.null(popup)) {
+    
+    if (level=="county") {
+      stname <- paste( ", ", geo_data$state_abbrev)
+    } else {
+      stname <- NULL
+    }
+    
   popup <- 
     paste0(
-      geo_data$NAME, ", ", geo_data$state_abbrev, 
+      geo_data$NAME,  stname, 
       "<br> 2012: ", formatcomma(geo_data@data[["emplvl_lag3"]]), 
       "<br> 2015: ",  formatcomma(geo_data@data[["avg_emplvl"]]), 
       "<br> change: ",  formatcomma(geo_data@data[["emplvl_diff3"]]),
@@ -274,7 +287,7 @@ gen_leaf_map  <- function(geo_data, var, file_name,
 
 # dairy farming ------------------------------------
 
-geo_dairy_farming <- prep_bls_data(df_dairy_farming)
+geo_dairy_farming <- prep_bls_data(df_dairy_farming, shapefile = shape_counties, level = "county")
 
 breaks_geo_change_dairy_farming <- c(- 500, -300, -200, -100, 0, 100, 200, 300, 500)
 breaks_geo_dairy_farming <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
@@ -283,6 +296,7 @@ gen_leaf_map(geo_dairy_farming,
               var = "emplvl_diff3",
               file_name = "employment_change_dairy_farming", 
               breaks= breaks_geo_change_dairy_farming,
+              palette = "RdYlBu",
               title = "Change in Employment<br>in Milk Production, <br> 2012 to 2015 (jobs)") 
 
 gen_leaf_map(geo_dairy_farming, 
@@ -293,9 +307,31 @@ gen_leaf_map(geo_dairy_farming,
               title = "Employment<br>in Milk Production, <br> 2015 (jobs)") 
 
 
+st_geo_dairy_farming <- prep_bls_data(st_dairy_farming, shapefile = shape_states, level = "state")
+
+breaks_st_geo_change_dairy_farming <- c(- Inf, -1000, -500, -200, 0, 200, 500, 1000, Inf)
+breaks_st_geo_dairy_farming <- c(0, 1000, 2000, 3000, 5000, 10000, 20000, 30000, Inf)
+
+gen_leaf_map(st_geo_dairy_farming, 
+             var = "emplvl_diff3",
+             file_name = "employment_st_change_dairy_farming", 
+             level = "state",
+             breaks= breaks_st_geo_change_dairy_farming,
+             palette = "RdYlBu",
+             title = "Change in Employment<br>in Milk Production, <br> 2012 to 2015 (jobs)") 
+
+gen_leaf_map(st_geo_dairy_farming, 
+             var = "avg_emplvl",
+             file_name = "employment_st_dairy_farming", 
+             level = "state",
+             breaks= breaks_st_geo_dairy_farming,
+             palette = "YlGnBu",
+             title = "Employment<br>in Milk Production, <br> 2015 (jobs)") 
+
+
 # dairy food manufacturing ----------------------------------------
 
-geo_dairy_food_mf <- prep_bls_data(df_dairy_food_mf)
+geo_dairy_food_mf <- prep_bls_data(df_dairy_food_mf, shapefile = shape_counties, level = "county")
 
 breaks_geo_change_dairy_food_mf <- c(-2000, - 500, -300, -200, -100, 0, 100, 200, 300, 500, 2000)
 breaks_geo_dairy_food_mf <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
@@ -305,6 +341,7 @@ gen_leaf_map(geo_dairy_food_mf,
               var = "emplvl_diff3",
               file_name = "employment_change_dairy_food_mf", 
               breaks= breaks_geo_change_dairy_food_mf,
+              palette = "RdYlBu",
               title = "Change in Employment<br>in Dairy Food Manufacturing, <br> 2012 to 2015 (jobs)") 
 
 gen_leaf_map(geo_dairy_food_mf, 
@@ -314,9 +351,32 @@ gen_leaf_map(geo_dairy_food_mf,
               palette = "YlGnBu",
               title = "Employment<br>in Dairy Food Manufacturing, <br> 2015 (jobs)") 
 
+
+st_geo_dairy_food_mf <- prep_bls_data(st_dairy_food_mf, shapefile = shape_states, level = "state")
+
+breaks_st_geo_change_dairy_food_mf  <- c(-2000, - 1000, -500, -300, -100, 0, 100, 300, 500, 1000, 2000)
+breaks_st_geo_dairy_food_mf <- c(0, 1000, 2000, 3000, 5000, 10000, 20000, 30000, Inf)
+
+gen_leaf_map(st_geo_dairy_food_mf, 
+             var = "emplvl_diff3",
+             file_name = "employment_st_change_dairy_food_mf", 
+             level = "state",
+             breaks= breaks_st_geo_change_dairy_food_mf,
+             palette = "RdYlBu",
+             title = "Change in Employment<br>in Dairy Food Manufacturing, <br> 2012 to 2015 (jobs)") 
+
+gen_leaf_map(st_geo_dairy_food_mf, 
+             var = "avg_emplvl",
+             file_name = "employment_st_dairy_food_mf", 
+             level = "state",
+             breaks= breaks_st_geo_dairy_food_mf ,
+             palette = "YlGnBu",
+             title = "Employment<br>in Dairy Food Manufacturing, <br> 2015 (jobs)") 
+
+
 # animal processing ----------------------------------------
 
-geo_animal_processing <- prep_bls_data(df_animal_processing)
+geo_animal_processing <- prep_bls_data(df_animal_processing, shapefile = shape_counties, level = "county")
 
 breaks_geo_change_animal_processing <- c(-Inf, - 500, -300, -200, -100, 0, 100, 200, 300, 500, Inf)
 breaks_geo_animal_processing <- c(0, 100, 200, 300, 500, 1000, 2000, 3000, Inf)
@@ -326,7 +386,8 @@ gen_leaf_map(geo_animal_processing,
               var = "emplvl_diff3",
               file_name = "employment_change_animal_processing", 
               breaks= breaks_geo_change_animal_processing,
-              title = "Change in Employment<br>in Animal Processing, <br> 2012 to 2015 (jobs)") 
+             palette = "RdYlBu",
+             title = "Change in Employment<br>in Animal Processing, <br> 2012 to 2015 (jobs)") 
 
 gen_leaf_map(geo_animal_processing, 
               var = "avg_emplvl",
@@ -334,6 +395,29 @@ gen_leaf_map(geo_animal_processing,
               breaks= breaks_geo_animal_processing,
               palette = "YlGnBu",
               title = "Employment<br>in Animal Processing, <br> 2015 (jobs)") 
+
+
+st_geo_animal_processing <- prep_bls_data(st_animal_processing, shapefile = shape_states, level = "state")
+
+breaks_st_geo_change_animal_processing <- c(-Inf, - 2000, -1000, -500, -300, 0, 300, 500, 1000, 2000, Inf)
+breaks_st_geo_animal_processing <- c(0, 500, 1000, 2000, 5000, 10000, 20000, 30000, Inf)
+
+
+gen_leaf_map(st_geo_animal_processing, 
+             var = "emplvl_diff3",
+             file_name = "employment_st_change_animal_processing", 
+             level = "state",
+             breaks= breaks_st_geo_change_animal_processing,
+             palette = "RdYlBu",
+             title = "Change in Employment<br>in Animal Processing, <br> 2012 to 2015 (jobs)") 
+
+gen_leaf_map(st_geo_animal_processing, 
+             var = "avg_emplvl",
+             file_name = "employment_st_animal_processing", 
+             level = "state",
+             breaks= breaks_st_geo_animal_processing,
+             palette = "YlGnBu",
+             title = "Employment<br>in Animal Processing, <br> 2015 (jobs)") 
 
 
 # -----------------------------------------------------------------
@@ -395,11 +479,11 @@ head(df_ag_census)
 
 df_ag_census$FIPS_num <- df_ag_census$FIPS %>% as.numeric()
 
-geo_ag_census <- geo_join(shapefile, 
+geo_ag_census <- geo_join(shape_counties, 
                                full_join(df_ag_census, 
                                          df_state_fips,
                                          by =  c("STATEFIP" = "state_fips")),
-                               "FIPS", "FIPS_num") # assuming id to merge are named "FIPS"
+                               "FIPS", "FIPS") # assuming id to merge are named "FIPS"
 
 
 gen_ag_census_leaf  <- function(geo_data, var, var1, var2, 
@@ -679,7 +763,7 @@ gen_ag_census_leaf(geo_ag_census,
 load("data/hispanic.RData")
 
 
-hisp_leaf <- function(data_FIPS, shapefile, var, suffix="%", no_growth =FALSE, ...) {
+hisp_leaf <- function(data_FIPS, shapefile, var, year, suffix="%", no_growth =FALSE, ...) {
   
   geo_data <- geo_join(shapefile, data_FIPS, "FIPS", "FIPS")
       # assuming id to merge are named "FIPS"
@@ -688,22 +772,22 @@ hisp_leaf <- function(data_FIPS, shapefile, var, suffix="%", no_growth =FALSE, .
     popup <- 
       paste0(
         geo_data$NAME, ", ", geo_data$state, 
-        "<br> Total pop.: ", formatcomma(geo_data@data[["pop_all"]]), 
-        "<br> Hispanic pop.: ", formatcomma(geo_data@data[["pop_hisp"]]), 
-        "<br> Hispanic prop.: ",  round(geo_data@data[["rate_hisp"]], 2) ,"%"
+        "<br> Total pop. (",year,"): ", formatcomma(geo_data@data[["pop_all"]]), 
+        "<br> Hispanic pop. (",year,"): ", formatcomma(geo_data@data[["pop_hisp"]]), 
+        "<br> Hispanic proportion: ",  round(geo_data@data[["rate_hisp"]], 2) ,"%"
       )
      
   } else {
     popup <- 
       paste0(
         geo_data$NAME, ", ", geo_data$state, 
-        "<br> Total pop.: ", formatcomma(geo_data@data[["pop_all"]]), 
-        "<br> Hispanic pop.: ", formatcomma(geo_data@data[["pop_hisp"]]), 
-        "<br> Hispanic prop.: ",  round(geo_data@data[["rate_hisp"]], 2) ,"%",
+        "<br> Total pop. (",year,"): ", formatcomma(geo_data@data[["pop_all"]]), 
+        "<br> Hispanic pop. (",year,"): ", formatcomma(geo_data@data[["pop_hisp"]]), 
+        "<br> Hispanic proportion: ",  round(geo_data@data[["rate_hisp"]], 2) ,"%",
+        "<br> Hispanic pop. (",(year-5),"): ", formatcomma(geo_data@data[["pop_hisp_l5"]]),
+        "<br> Change in Hispanic pop: ", formatcomma(geo_data@data[["hisp_change"]]),
         "<br> Total pop. growth: ",    round(geo_data@data[["growth_all"]], 2), "%/year",
-        "<br> Hispanic pop. growth: ", round(geo_data@data[["growth_hisp"]], 2), "%/year",
-        "<br> Hispanic pop. 5 years ago: ", formatcomma(geo_data@data[["pop_hisp_l5"]]),
-        "<br> Change in Hispanic pop: ", formatcomma(geo_data@data[["hisp_change"]])
+        "<br> Hispanic pop. growth: ", round(geo_data@data[["growth_hisp"]], 2), "%/year" 
       )
   }
   
@@ -712,7 +796,14 @@ hisp_leaf <- function(data_FIPS, shapefile, var, suffix="%", no_growth =FALSE, .
 
 
 hispanic_90_15 <- hispanic_90_15 %>%
-  group_by(FIPS) %>% 
+  mutate(
+    FIPS = FIPS %>% as.character(),
+    FIPS = ifelse(nchar(FIPS)==4,
+                  paste0("0", FIPS), FIPS)
+  )
+
+hispanic_90_15 <- hispanic_90_15 %>%
+  group_by(FIPS) %>% arrange(FIPS, year) %>%
   mutate(
     pop_all_l5 = dplyr::lag(pop_all, 5),    
     pop_hisp_l5 = dplyr::lag(pop_hisp, 5),
@@ -721,7 +812,7 @@ hispanic_90_15 <- hispanic_90_15 %>%
     growth_hisp = (pop_hisp - pop_hisp_l5)/pop_hisp_l5*100/5
   ) %>% ungroup()
 
-hispanic_90_15 %>% filter(FIPS==27053) %>% "["(1:20,)
+hispanic_90_15 %>% filter(FIPS=="27053") %>% "["(1:20,)
 
 my_breaks_hispanic <- c(0, 1, 3, 5, 10, 20, 30, 40, 100)
 
@@ -729,8 +820,9 @@ for (y in c(1990, 1995, 2000, 2010, 2015)) {
   if (y==1990) no_growth <- TRUE else no_growth <- FALSE 
   hispanic_90_15 %>% filter(year==y) %>%
     mutate(rate_hisp = rate_hisp * 100) %>%
-    hisp_leaf(shapefile, 
+    hisp_leaf(shape_counties, 
               var = "rate_hisp", 
+              year = y,
               breaks = my_breaks_hispanic,
               title= paste("Relative Hispanic population <br> by county,", y,"(%):"),
               palette = "YlGnBu",
@@ -745,8 +837,9 @@ for (y in c(1995, 2000, 2005, 2010, 2015)) {
   if (y==1990) no_growth <- TRUE else no_growth <- FALSE 
   hispanic_90_15 %>% filter(year==y) %>%
     mutate(rate_hisp = rate_hisp * 100) %>%
-    hisp_leaf(shapefile, 
+    hisp_leaf(shape_counties, 
               var = "growth_hisp", 
+              year = y,
               breaks = my_breaks_change_pct_hispanic,
               title= paste("Change in Hispanic population <br> by county,", y,"(%):"),
               palette = "RdYlBu",
@@ -761,11 +854,216 @@ for (y in c(1995, 2000, 2005, 2010, 2015)) {
   if (y==1990) no_growth <- TRUE else no_growth <- FALSE 
   hispanic_90_15 %>% filter(year==y) %>%
     mutate(rate_hisp = rate_hisp * 100) %>%
-    hisp_leaf(shapefile, 
+    hisp_leaf(shape_counties, 
               var = "hisp_change", 
+              year = y,
               breaks = my_breaks_change_hispanic,
-              title= paste("Change in Hispanic population <br> by county,", y,"to", (y-5),"(persons):"),
+              title= paste("Change in Hispanic population <br> by county,", (y-5),"to", y,"(persons):"),
               palette = "RdYlBu",
               no_growth = no_growth,
               file_name = paste0("change_hispanic_pop_",y))
 }
+
+
+
+# -----------------------------------------------------------------
+# Cash Rent data
+# -----------------------------------------------------------------
+
+df_rent <- read.csv("data/land_rental_county.csv")
+
+substr(colnames(df_rent),1,200)
+
+idx <- grepl("RENT..CASH..", colnames(df_rent))
+idx2 <- grepl("b.VALUE..b.", colnames(df_rent)[idx])
+colnames(df_rent)[idx][idx2]
+
+varnames <- lapply( c(1:sum(idx2)), function(i) {
+  
+  cnames <- colnames(df_rent)[idx][idx2]
+  str_end <- gregexpr(pattern ='\\.\\.\\.',
+                      cnames[i])[[1]][1] -1
+  gsub("\\.","_", gsub("\\.\\.","\\.",  gsub("CROPLAND\\.\\.", "", gsub("CASH\\.\\.","", substr(cnames[i], 1, str_end)))))
+}) %>% unlist()
+
+for ( i in 1:sum(idx2)) {
+  cnames <- colnames(df_rent)[idx][idx2]
+  df_rent[[varnames[i]]] <- df_rent[,cnames[i]] 
+}
+
+df_rent <- df_rent %>% select(Year, State, State.ANSI, County, County.ANSI, starts_with("RENT_"))
+            
+df_rent <- df_rent %>% 
+  mutate(
+    FIPS =  ( State.ANSI*1000 + County.ANSI  ) %>% as.character(),
+    FIPS = ifelse(State.ANSI<10,
+                  paste0("0", FIPS), FIPS)
+  )
+
+head(df_rent)
+
+(df_rent$RENT_IRRIGATED =="") %>% sum
+
+
+
+df_rent <- df_rent %>% 
+  group_by(FIPS) %>% arrange(FIPS,Year) %>%
+  mutate(
+    RENT_IRRIGATED = ifelse(RENT_IRRIGATED =="", NA, RENT_IRRIGATED), 
+    RENT_NON_IRRIGATED = ifelse(RENT_NON_IRRIGATED =="", NA, RENT_NON_IRRIGATED), 
+    RENT_PASTURELAND = ifelse(RENT_PASTURELAND =="", NA, RENT_PASTURELAND),
+    RENT_IRRIGATED = as.numeric(RENT_IRRIGATED),
+    RENT_NON_IRRIGATED = as.numeric(RENT_NON_IRRIGATED),
+    RENT_PASTURELAND = as.numeric(RENT_PASTURELAND),
+    RENT_IRRIGATED_L1 = dplyr::lag(RENT_IRRIGATED, 1),
+    RENT_NON_IRRIGATED_L1 = dplyr::lag(RENT_NON_IRRIGATED, 1),
+    RENT_PASTURELAND_L1 = dplyr::lag(RENT_PASTURELAND, 1),
+    change_IRRIGATED_1 = RENT_IRRIGATED -  RENT_IRRIGATED_L1, 
+    change_NON_IRRIGATED_1 = RENT_NON_IRRIGATED -  RENT_NON_IRRIGATED_L1, 
+    change_PASTURELAND_1 = RENT_PASTURELAND-  RENT_PASTURELAND_L1, 
+    change_pct_IRRIGATED_1 = change_IRRIGATED_1/RENT_IRRIGATED_L1 * 100,
+    change_pct_NON_IRRIGATED_1 = change_NON_IRRIGATED_1/RENT_NON_IRRIGATED_L1 *100,
+    change_pct_PASTURELAND_1 = change_PASTURELAND_1/RENT_PASTURELAND_L1 * 100,
+    RENT_IRRIGATED_L2 = dplyr::lag(RENT_IRRIGATED, 2),
+    RENT_NON_IRRIGATED_L2 = dplyr::lag(RENT_NON_IRRIGATED, 2),
+    RENT_PASTURELAND_L2 = dplyr::lag(RENT_PASTURELAND, 2),
+    change_IRRIGATED_2 = RENT_IRRIGATED -  RENT_IRRIGATED_L2, 
+    change_NON_IRRIGATED_2 = RENT_NON_IRRIGATED -  RENT_NON_IRRIGATED_L2, 
+    change_PASTURELAND_2 = RENT_PASTURELAND-  RENT_PASTURELAND_L2, 
+    change_pct_IRRIGATED_2 = change_IRRIGATED_2/RENT_IRRIGATED_L2 * 100,
+    change_pct_NON_IRRIGATED_2 = change_NON_IRRIGATED_2/RENT_NON_IRRIGATED_L2 *100,
+    change_pct_PASTURELAND_2 = change_PASTURELAND_2/RENT_PASTURELAND_L2 * 100
+  ) %>% ungroup()
+
+add_sign <- function(num) ifelse(is.na(num), NA, paste0(ifelse(num>0, "+", "-"), abs(num)))
+
+
+rent_leaf <- function(data_FIPS, shapefile, var, year, land_type="IRRIGATED",  no_change =FALSE, ...) {
+  
+  geo_data <- geo_join(shapefile, data_FIPS, "FIPS", "FIPS")
+  # assuming id to merge are named "FIPS"
+  
+  land_label <- switch(land_type, 
+                       IRRIGATED = "irrigated cropland",
+                       NON_IRRIGATED = "non-irrigated cropland",
+                       PASTURELAND = "pastureland"
+                       ) 
+  
+  if (no_change) {
+    popup <- 
+      paste0(
+        geo_data$NAME, ", ", geo_data$State, 
+        "<br> Rate of ", land_label, " ($/acre)",
+        "<br>", year, ": ", formatcomma(geo_data@data[[paste0("RENT_",land_type)]], dollar = TRUE)
+      )
+    
+  } else {
+    
+    if (year<=2014) num_lag <- 1 else num_lag <- 2
+    
+    popup <- 
+      paste0(
+        geo_data$NAME, ", ", geo_data$State, 
+        "<br> Rate for ", land_label, " ($/acre)",
+        "<br>", year, ": ", formatcomma(geo_data@data[[paste0("RENT_",land_type)]], dollar = TRUE), 
+        "<br>", (year-num_lag), ": ", formatcomma(geo_data@data[[paste0("RENT_",land_type,"_L",num_lag)]], dollar = TRUE), 
+        "<br> change: ", formatcomma(geo_data@data[[paste0("change_",land_type,"_",num_lag)]], dollar = TRUE), 
+        " (",add_sign(round(geo_data@data[[paste0("change_pct_",land_type,"_",num_lag)]],2)), "%)" 
+      )
+  }
+  
+  gen_leaf_map(geo_data = geo_data, var=var, popup = popup, ...)
+}
+
+
+
+
+breaks_irrigated <- c(0, 50, 100, 150, 200, 250, 300, 400, Inf)
+breaks_non_irrigated <- c(0, 30, 50, 100, 150, 200, 250, 300, Inf)
+breaks_pastureland <- c(0, 20, 40, 60, 80, 100, 120, Inf)
+
+for (y in c(2008:2014, 2016)) { # no data for 2015
+
+  if (y==2008) no_change <- TRUE else no_change <- FALSE 
+  df_rent %>% filter(Year==y) %>%
+    rent_leaf (shape_counties, 
+              var = "RENT_IRRIGATED", 
+              breaks = breaks_irrigated,
+              year = y, 
+              land_type="IRRIGATED",
+              title= paste("Rental rate for irrigated cropland <br> by county,", y,"($/acre):"),
+              palette = "YlGnBu",
+              no_change= no_change,
+              file_name = paste0("rent_irrigated_",y))
+  
+  df_rent %>% filter(Year==y) %>%
+    rent_leaf (shape_counties, 
+               var = "RENT_NON_IRRIGATED", 
+               breaks = breaks_non_irrigated,
+               year = y, 
+               land_type="NON_IRRIGATED",
+               title= paste("Rental rate for non-irrigated cropland <br> by county,", y,"($/acre):"),
+               palette = "YlGnBu",
+               no_change= no_change,
+               file_name = paste0("rent_non_irrigated_",y))
+  
+  df_rent %>% filter(Year==y) %>%
+    rent_leaf (shape_counties, 
+               var = "RENT_PASTURELAND", 
+               breaks = breaks_pastureland,
+               year = y, 
+               land_type="PASTURELAND",
+               title= paste("Rental rate for pastureland <br> by county,", y,"($/acre):"),
+               palette = "YlGnBu",
+               no_change= no_change,
+               file_name = paste0("rent_pastureland_",y))
+}
+
+
+
+
+breaks_rent_change <- c(-Inf, -100, -50, -20, 0, 20, 50, 100, Inf)
+
+for (y in c(2009:2014, 2016)) {
+  
+  if (y==2008) no_change <- TRUE else no_change <- FALSE 
+  if (y<=2014) num_lag <- 1 else num_lag <- 2
+  
+  df_rent %>% filter(Year==y) %>%
+    rent_leaf (shape_counties, 
+               var = paste0("change_IRRIGATED_",num_lag), 
+               breaks = breaks_rent_change,
+               year = y, 
+               land_type="IRRIGATED",
+               title= paste("Change in rental rate for irrigated cropland <br> by county,",
+                            (y - num_lag),"to", y,"($/acre):"),
+               palette = "RdYlBu",
+               no_change= no_change,
+               file_name = paste0("change_rent_irrigated_",y))
+  
+  df_rent %>% filter(Year==y) %>%
+    rent_leaf (shape_counties, 
+               var = paste0("change_NON_IRRIGATED_",num_lag),  
+               breaks = breaks_rent_change,
+               year = y, 
+               land_type="NON_IRRIGATED",
+               title= paste("Change in rental rate for non-irrigated cropland <br> by county,",
+                            (y - num_lag),"to", y,"($/acre):"),
+               palette = "RdYlBu",
+               no_change= no_change,
+               file_name = paste0("change_rent_non_irrigated_",y))
+  
+  df_rent %>% filter(Year==y) %>%
+    rent_leaf (shape_counties, 
+               var =paste0("change_PASTURELAND_",num_lag), 
+               breaks = breaks_rent_change,
+               year = y, 
+               land_type="PASTURELAND",
+               title= paste("Change in rental rate for pastureland <br> by county,",  
+                            (y - num_lag),"to", y,"($/acre):"),
+               palette = "RdYlBu",
+               no_change= no_change,
+               file_name = paste0("change_rent_pastureland_",y))
+}
+
+
