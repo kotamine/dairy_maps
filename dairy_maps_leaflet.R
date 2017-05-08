@@ -757,8 +757,9 @@ gen_ag_census_leaf(geo_ag_census,
 
 
 
-
-# --- Hispanic population ----------
+# -----------------------------------------
+#   Hispanic population 
+# -----------------------------------------
 
 load("data/hispanic.RData")
 
