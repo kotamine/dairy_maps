@@ -202,7 +202,7 @@ prep_bls_data <- function(df, yr = 2015, shapefile, level = "county") {
   
   if (level=="county")  {        
     geo_df <- geo_join(shapefile, df_sml,
-                     "FIPS", "FIPS_num")  
+                     "FIPS", "FIPS")  
   } else {
     geo_df <- geo_join(shapefile, df_sml,
                        "FIPS", "ST_FIPS_char") 

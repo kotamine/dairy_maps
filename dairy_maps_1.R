@@ -173,7 +173,7 @@ loc_colors <- brewer.pal(8, "RdYlBu")[-1]
 loc_colors <- c(loc_colors[1:3], "white", loc_colors[4:8])
 
 ( map_dairy_cnty(df_dairy_farming  %>%  
-                  filter(state %in% st_fips_keep, year ==2015), 
+                  filter(state %in% st_fips_keep1, year ==2015), 
                 var ="change_jobs_gr", 
                 title= paste("Change in Employment in Dairy Cattle and Milk Production, 2012 to 2015"), 
                 legend_fill="Change (jobs):", 
@@ -188,7 +188,7 @@ loc_colors <- c(loc_colors[1:3], "white", loc_colors[4:8])
 
 for (yr in c(2012, 2015)) {
   ( map_dairy_cnty(df_dairy_farming  %>%  
-                    filter(state %in% st_fips_keep, year ==yr, avg_emplvl>0), 
+                    filter(state %in% st_fips_keep1, year ==yr, avg_emplvl>0), 
                   var = "avg_emplvl", 
                   title= paste("Employment Dairy Cattle and Milk Production,", yr), 
                   legend_fill="Jobs:",
@@ -242,7 +242,7 @@ df_dairy_food_mf$emplvl_diff3 %>% summary()
 df_dairy_food_mf$change_jobs_gr %>% table()
 
 df_dairy_food_mf %>%  
-  filter(state %in% st_fips_keep) %>% print(n=30)
+  filter(state %in% st_fips_keep1) %>% print(n=30)
 
 
 ( map_dairy_cnty(df_dairy_food_mf  %>%  
