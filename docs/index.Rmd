@@ -56,9 +56,9 @@ Milk cow inventory can be calculated from  [Agricultural Census summary files](h
 <a href="html/cow_inventory_2012.html" target="_blank" >2012</a>
 
 #### Changes {-}
-* <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >1992-1997</a>,
-<a href="html/change_cow_inventory_2007_2012.html" target="_blank" >1997-2002</a>,
-<a href="html/change_cow_inventory_2007_2012.html" target="_blank" >2002-2007</a>,
+* <a href="html/change_cow_inventory_1992_1997.html" target="_blank" >1992-1997</a>,
+<a href="html/change_cow_inventory_1997_2002.html" target="_blank" >1997-2002</a>,
+<a href="html/change_cow_inventory_2002_2017.html" target="_blank" >2002-2007</a>,
 <a href="html/change_cow_inventory_2007_2012.html" target="_blank" >2007-2012</a>
 
 
