@@ -1,0 +1,74 @@
+.cowhealth,
+.cowcomfort,
+.genetics,
+.milkquality,
+.nutrition,
+.reproduction,
+.transitioncows{
+    border: 1px solid #2dA200;
+}
+
+.post-header.cowhealth, 
+.cowhealth > .panel-heading,
+.post-header.cowcomfort, 
+.cowcomfort > .panel-heading,
+.post-header.genetics, 
+.genetics > .panel-heading,
+.post-header.milkquality, 
+.milkquality > .panel-heading,
+.post-header.nutrition, 
+.nutrition > .panel-heading,
+.post-header.reproduction, 
+.reproduction > .panel-heading,
+.post-header.transitioncows, 
+.transitioncows > .panel-heading {
+    color: #fff;
+    background-color: #2dA200;
+    border-color: #2dA200;
+}
+
+.facilitieslabor,
+.facilities,
+.labor {
+    border: 1px solid #00a2b6;
+}
+
+.post-header.facilitieslabor, 
+.facilitieslabor > .panel-heading,
+.post-header.facilities, 
+.facilities > .panel-heading, 
+.post-header.labor, 
+.labor > .panel-heading {
+    color: #fff;
+    background-color: #00a2b6;
+    border-color: #00a2b6;
+}
+
+.generaldiscussion,
+.generalPosts {
+    border: 1px solid #a200b6;
+}
+
+.post-header.generaldiscussion, 
+.generaldiscussion > .panel-heading,
+.post-header.generalPosts, 
+.generalPosts > .panel-heading {
+    color: #fff;
+    background-color: #a200b6;
+    border-color: #a200b6;
+}
+
+.dropdown {
+    display: inline-block;
+    float: right;
+}
+
+.post-options {
+    background-color: rgba(256, 256, 256, 0.85);
+    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.58);
+    border-radius: 3px;
+    padding: 5px;
+    display: inline-block;
+    float: right;
+    margin-top: -5px;
+}
