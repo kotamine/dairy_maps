@@ -7,7 +7,7 @@ body {
   color: #777777;
 }
 .text-primary {
-  color: #fed136;
+  color: #7a0019;
 }
 p {
   font-size: 14px;
@@ -24,7 +24,7 @@ a.active {
   outline: none;
 }
 a {
-  color: #fed136;
+  color: #7a0019;
 }
 a:hover,
 a:focus,
@@ -734,4 +734,5 @@ img::-moz-selection {
 }
 body {
   webkit-tap-highlight-color: #fed136;
+  padding-top: 135px;
 }
