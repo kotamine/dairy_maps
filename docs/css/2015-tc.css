@@ -32,7 +32,7 @@ letter-spacing: normal; text-transform: none; border: none; background: none; fo
 #umnhf-h a.umnhf:link, #umnhf-h a.umnhf:visited, #umnhf-h a.umnhf:hover, #umnhf-h a.umnhf:active { text-decoration: underline; color: #7a0019; }
 #umnhf-h a.umnhf:hover { color: #669; }
 
-#umnhf-h-mast { position: relative; min-height: 64px; margin: 0 auto; background: #19507a; }
+#umnhf-h-mast { position: relative; min-height: 64px; margin: 0 auto; background: #7a0019; }
 
 #umnhf-h-logo { display: block; float: left; overflow: hidden; width: 288px; height: 38px; margin: 13px 10px 13px 54px; white-space: nowrap; text-indent: 100%; background-size: 288px 67px; background: transparent url("../img/sprites/tc/D2D-gld-wht.png") 0 0 no-repeat; }
 @media only screen and (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 192dpi) { #umnhf-h-logo { background: transparent url("../img/sprites/tc/D2D-gld-wht@2x.png") 0 0 no-repeat; background-size: 288px auto; } }
