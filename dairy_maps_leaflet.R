@@ -215,6 +215,8 @@ prep_bls_data <- function(df, yr = 2015, shapefile, level = "county") {
 
 add_map_var <- function(geo_data, var, varname, breaks,
                         large_limits=FALSE, large_limit_left=FALSE, large_limit_right=FALSE) {
+  
+  # browser()
   geo_data[[varname]] <- cut(geo_data@data[[var]], 
                              breaks = breaks,
                              ordered_result = TRUE,
@@ -486,22 +488,24 @@ geo_ag_census <- geo_join(shape_counties,
                                "FIPS", "FIPS") # assuming id to merge are named "FIPS"
 
 
-gen_ag_census_leaf  <- function(geo_data, var, var1, var2, 
-                                label1, label2, ...) {
+gen_ag_census_leaf  <- function(geo_data, var, var0=var, var1, var2, 
+                                label1, label2, digits_change =0, ...) {
+  
+  # browser()
   
   popup <- 
     paste0(
       geo_data$NAME, ", ", geo_data$state_abbrev, 
       "<br>", label1,  ": ", formatcomma(geo_data@data[[var1]], digits=0), 
       "<br>", label2,  ": ", formatcomma(geo_data@data[[var2]], digits=0), 
-      "<br> change: ",  formatcomma(geo_data@data[[var]], digits=0), 
+      "<br> change: ",  formatcomma(geo_data@data[[var]], digits=digits_change), 
       " (", ifelse(geo_data@data[[var1]]==0, 
                    "NA)", 
                    paste0(round((geo_data@data[[var2]] - geo_data@data[[var1]])/
                                   geo_data@data[[var1]], 2)*100, "%)"))
     )
   
-    gen_leaf_map(geo_data = geo_data, var=var, popup = popup, ...)
+    gen_leaf_map(geo_data = geo_data, var=var0, popup = popup, ...)
 }
 
 # dairy cow inventory -----------------------------------
@@ -559,7 +563,11 @@ geo_ag_census@data <-
     cows_07_1000 = cows_20_up_07/1000,
     cows_02_1000 = cows_20_up_02/1000,
     cows_97_1000 = cows_20_up_97/1000,
-    cows_92_1000 = cows_20_up_92/1000
+    cows_92_1000 = cows_20_up_92/1000,
+    change_cows_92_97_1000 = change_cows_92_97/1000,
+    change_cows_97_02_1000 = change_cows_97_02/1000,
+    change_cows_02_07_1000 = change_cows_02_07/1000,
+    change_cows_07_12_1000 = change_cows_07_12/1000
   )
 
 
@@ -570,7 +578,8 @@ list_specs <- data.frame(
   mutate(
     num1 = substr(yr1, 3,4), 
     num2 = substr(yr2, 3,4),
-    var  = paste0("cows_", num2, "_1000"),
+    var0 = paste0("cows_", num2, "_1000"),
+    var = paste0("change_cows_",num1 , "_",num2, "_1000"),
     var1 = paste0("cows_", num1, "_1000"),
     var2 = paste0("cows_", num2, "_1000")
   )
@@ -581,8 +590,9 @@ list_specs %>%
     for (i in 1:length(list_specs[[1]])) {
       
       gen_ag_census_leaf(geo_ag_census, 
-                         var=var[[i]], 
+                         var0=var0[[i]],  var = var[[i]], 
                          var1=var1[[i]], var2=var2[[i]], 
+                         digits_change = 2,
                          label1=yr1[[i]], label2=yr2[[i]], 
                          breaks =breaks_geo_cows,
                          palette = "YlGnBu",
@@ -592,10 +602,12 @@ list_specs %>%
     }
   )
 
+
 # the last/oldest census year uses the same popup as one-census before 
 gen_ag_census_leaf(geo_ag_census, 
-                   var="cows_92_1000", 
-                   var1="cows_20_up_92", var2="cows_20_up_97", 
+                   var0="cows_97_1000", var = "change_cows_92_97_1000", 
+                   var1="cows_92_1000", var2="cows_97_1000", 
+                   digits_change = 2,
                    label1=1992, label2=1997, 
                    breaks = breaks_geo_cows,
                    file_name="cow_inventory_1992",
@@ -647,7 +659,8 @@ list_specs <- data.frame(
   mutate(
     num1 = substr(yr1, 3,4), 
     num2 = substr(yr2, 3,4),
-    var  = paste0("harvest_corn_", num2),
+    var0  = paste0("harvest_corn_", num2),
+    var = paste0("change_corn_",num1 , "_",num2),
     var1 = paste0("harvest_corn_", num1),
     var2 = paste0("harvest_corn_", num2)
   )
@@ -658,7 +671,7 @@ list_specs %>%
     for (i in 1:length(list_specs[[1]])) {
       
       gen_ag_census_leaf(geo_ag_census, 
-                         var=var[[i]], 
+                         var0=var0[[i]], var=var[[i]],
                          var1=var1[[i]], var2=var2[[i]], 
                          label1=yr1[[i]], label2=yr2[[i]], 
                          breaks = breaks_geo_corn,
@@ -671,7 +684,7 @@ list_specs %>%
 
 # the last/oldest census year uses the same popup as one-census before 
 gen_ag_census_leaf(geo_ag_census, 
-                   var="harvest_corn_92", 
+                   var0="harvest_corn_92", var = "change_corn_92_97", 
                    var1="harvest_corn_92", var2="harvest_corn_97", 
                    label1=1992, label2=1997, 
                    breaks = breaks_geo_corn,
@@ -723,7 +736,8 @@ list_specs <- data.frame(
   mutate(
     num1 = substr(yr1, 3,4), 
     num2 = substr(yr2, 3,4),
-    var  = paste0("harvest_soybean_", num2),
+    var0  = paste0("harvest_soybean_", num2),
+    var = paste0("change_soybean_",num1 , "_",num2),
     var1 = paste0("harvest_soybean_", num1),
     var2 = paste0("harvest_soybean_", num2)
   )
@@ -734,7 +748,7 @@ list_specs %>%
     for (i in 1:length(list_specs[[1]])) {
       
       gen_ag_census_leaf(geo_ag_census, 
-                         var=var[[i]], 
+                         var0=var0[[i]], var=var[[i]], 
                          var1=var1[[i]], var2=var2[[i]], 
                          label1=yr1[[i]], label2=yr2[[i]], 
                          breaks = breaks_geo_soybean,
@@ -747,7 +761,7 @@ list_specs %>%
 
 # the last/oldest census year uses the same popup as one-census before 
 gen_ag_census_leaf(geo_ag_census, 
-                   var="harvest_soybean_92", 
+                   var0="harvest_soybean_92",  var = "change_soybean_92_97", 
                    var1="harvest_soybean_92", var2="harvest_soybean_97", 
                    label1=1992, label2=1997, 
                    breaks = breaks_geo_soybean,
